@@ -21,6 +21,11 @@ data/processed/
 models/saved/
 *.pkl
 *.joblib
+!artifacts/model.joblib
+.streamlit/secrets.toml
+artifacts/*.tmp
+artifacts/predictions/*.tmp
+training-results.txt
 
 # Jupyter
 .ipynb_checkpoints/

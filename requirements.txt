@@ -1,0 +1,2 @@
+# Exact tested versions also keep the saved joblib model compatible on deployment.
+-r requirements.lock

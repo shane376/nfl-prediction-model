@@ -1,0 +1,83 @@
+===================================
+V1C MODEL PLAYGROUND
+===================================
+Training seasons: [2023, 2024]
+Testing season:   2025
+
+Features:
+- win_pct_diff
+- streak_diff
+- point_diff_diff
+
+Training games: 544
+Testing games:  271
+
+===================================
+C PARAMETER COMPARISON
+===================================
+      C accuracy
+  0.001   59.04%
+  0.010   63.84%
+  0.100   62.73%
+  0.500   62.73%
+  1.000   63.10%
+  2.000   63.10%
+  5.000   63.10%
+ 10.000   63.10%
+100.000   63.10%
+
+===================================
+BEST C
+===================================
+C:        0.01
+Accuracy: 63.84%
+
+===================================
+THRESHOLD COMPARISON
+===================================
+ threshold accuracy
+      0.40   59.04%
+      0.42   57.56%
+      0.44   57.20%
+      0.46   59.41%
+      0.48   61.25%
+      0.50   63.84%
+      0.52   65.31%
+      0.54   63.84%
+      0.56   60.52%
+      0.58   59.04%
+      0.60   59.04%
+
+===================================
+MODEL RESULTS
+===================================
+Accuracy: 63.84%
+
+Confusion Matrix:
+[[ 55  70]
+ [ 28 118]]
+
+===================================
+SAMPLE PREDICTIONS
+===================================
+ week home_team away_team  prediction  target  correct
+    1        NO       ARI           1       0    False
+    1       BUF       BAL           1       1     True
+    1       JAX       CAR           1       1     True
+    1       CLE       CIN           1       0    False
+    1       PHI       DAL           1       1     True
+    1        GB       DET           1       1     True
+    1        LA       HOU           1       1     True
+    1       LAC        KC           1       1     True
+    1        NE        LV           1       0    False
+    1       IND       MIA           1       1     True
+    1       CHI       MIN           1       0    False
+    1       WAS       NYG           1       1     True
+    1       NYJ       PIT           1       0    False
+    1       SEA        SF           1       0    False
+    1       ATL        TB           1       0    False
+    1       DEN       TEN           1       1     True
+    2       MIN       ATL           1       0    False
+    2       NYJ       BUF           0       0     True
+    2       ARI       CAR           1       1     True
+    2       DET       CHI           0       1    False
