@@ -1,0 +1,15 @@
+# Sprint report
+
+Implemented on `feature/2026-dashboard-mvp`. Existing training/feature scripts and datasets remain available. The initial audit inspected all tracked scripts, raw/processed local datasets and notebook documentation. No repository AGENTS.md was found. Python initially lacked dependencies; after a local venv installation the legacy baseline ran successfully (`baseline-results.txt`).
+
+Audit findings: V1C selects C and threshold using test results; train_v1 also ranks models using the test. Existing features use week ordering, which is brittle for rescheduled games; missing scores can resemble ties. Schedule generator writes to root while downstream scripts expect data/raw. All legacy paths depend on cwd. New modules anchor paths to the repository and use chronological cutoffs, with limitations stated in README.
+
+Implementation plan executed: normalize/cache public schedules; share features; reuse A–D model definitions; validate on 2024 and test on 2025; separately fit production; persist immutable pregame records; build read-only Streamlit views; add fixtures, CI, automation and deployment docs.
+
+New/modified files are listed by purpose in README. Additional files: `.streamlit/config.toml`, requirements files, `.gitignore`, two workflows, tests, this report and saved public artifacts. Model A was selected by validation. Reproducible 2025 metrics and legacy baseline are recorded in README and artifacts/model.json. Live metrics are intentionally unavailable until actual pregame records finish.
+
+Deployment is prepared, not published. Outstanding operational steps: push/review feature branch, integrate workflows on the default branch with approval, set deployment branch, enable Actions write permissions, deploy Community Cloud, verify a public URL. Source-specific limitations include no final-whistle timestamps and the conservative 12-hour feature embargo. Automated Git pushes can be blocked by branch protection; scheduling can be delayed. No credentials or secrets were added.
+
+Validation: legacy train_v1 completed (A 61.62%, B 60.52%, C 63.10%, D 61.25%); V1C playground also completed (its test-selected C=.01 yields 63.84%, retained only as a legacy diagnostic, not a valid selection policy). Eight offline pytest checks cover feature values, future-score invariance, season cold starts, ties, missing scores and kickoff times, aliases, delayed result availability, training, probability sums, repeat/rerun persistence, post-kickoff freeze, changed kickoff rejection, reconciliation idempotence, cache fallback and dashboard interaction. Streamlit's live agent API returned ready and rendered Week 10's 14 games with probability bars. Dependency checks and Python compilation passed. No browser visual inspection or public URL verification was performed.
+
+Real source snapshot contains 1,088 regular-season rows across 2023–2026, including all 272 games in 2026. Twenty-nine genuine pregame records were saved: 15 for source Week 9 and 14 for Week 10. Live scored games: zero. These are newly recorded picks, not backdated earlier-season predictions. Current week follows nflverse (Week 9 on November 5).

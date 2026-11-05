@@ -1,0 +1,8 @@
+{
+  "games": 0,
+  "accuracy": null,
+  "log_loss": null,
+  "brier": null,
+  "correct": 0,
+  "incorrect": 0
+}

@@ -1,0 +1,20 @@
+{
+  "season": 2026,
+  "week": 10,
+  "game_id": "2026_10_MIN_GB",
+  "home_team": "GB",
+  "away_team": "MIN",
+  "kickoff": "2026-11-15T18:00:00+00:00",
+  "predicted_winner": "MIN",
+  "home_probability": 0.46286892033703025,
+  "away_probability": 0.5371310796629698,
+  "model_version": "v1A-1aa64cb4b1",
+  "generated_at": "2026-11-05T21:58:10.302851+00:00",
+  "data_cutoff": "2026-11-05T21:58:10.302851+00:00",
+  "training_cutoff": "2026-11-05T21:57:09.561472+00:00",
+  "source_freshness": "2026-11-05T21:56:54.097165+00:00",
+  "source_stale": false,
+  "prediction_status": "recorded",
+  "kind": "live",
+  "revision": 1
+}
