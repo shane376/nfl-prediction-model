@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.key
+
+# NFL datasets
+data/raw/
+data/interim/
+data/processed/
+
+# Trained models
+models/saved/
+*.pkl
+*.joblib
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
