@@ -5,10 +5,11 @@ from src.data import normalize
 
 @pytest.fixture(autouse=True)
 def fixed_clock(monkeypatch):
-    from src import data, predictions
+    from src import data, predictions, modeling
     fixed = lambda: pd.Timestamp("2026-11-05T20:00:00Z")
     monkeypatch.setattr(data, "now", fixed)
     monkeypatch.setattr(predictions, "now", fixed)
+    monkeypatch.setattr(modeling, "now", fixed)
 
 
 @pytest.fixture

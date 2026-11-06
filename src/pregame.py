@@ -1,10 +1,13 @@
 """Identical season-to-date feature definitions for training and inference."""
 import pandas as pd
+from src.data import utc_time
 
 
 def features(games, game, cutoff):
-    cutoff = min(pd.Timestamp(cutoff), game.kickoff)
-    history = games.loc[(games.season == game.season) & (games.available_at < cutoff) & games.status.eq("completed")]
+    cutoff = min(utc_time(cutoff), utc_time(game.kickoff))
+    history = games.loc[(games.season == game.season) & (games.available_at < cutoff)
+                        & (games.kickoff < cutoff) & games.game_id.ne(game.game_id)
+                        & games.home_score.notna() & games.away_score.notna() & games.status.eq("completed")]
     result = {}
     for side in ("home", "away"):
         team = game[f"{side}_team"]
@@ -32,6 +35,7 @@ def features(games, game, cutoff):
 
 
 def training_rows(games, cutoff):
+    cutoff = utc_time(cutoff)
     rows = []
     for _, game in games.loc[games.status.eq("completed") & (games.available_at < cutoff)].iterrows():
         if game.home_score == game.away_score:

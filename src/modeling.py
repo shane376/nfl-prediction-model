@@ -8,7 +8,7 @@ from sklearn.calibration import calibration_curve
 from sklearn.metrics import accuracy_score, log_loss, brier_score_loss
 from src.models.train_v1 import MODEL_FEATURES, build_model
 from src.pregame import training_rows
-from src.data import STORE, write_json
+from src.data import STORE, write_json, utc_time, now
 
 
 def metrics(y, probabilities):
@@ -22,6 +22,9 @@ def metrics(y, probabilities):
 
 
 def train(games, cutoff, source):
+    cutoff = utc_time(cutoff)
+    if cutoff > now():
+        raise ValueError("Training cutoff is in the future")
     rows = training_rows(games, cutoff)
     if rows.empty or not {2023, 2024, 2025}.issubset(set(rows.season)):
         raise ValueError("Training requires completed 2023, 2024 and 2025 data")
