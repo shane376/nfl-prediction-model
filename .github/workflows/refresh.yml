@@ -5,39 +5,67 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  pull-requests: write
 concurrency:
   group: nfl-prediction-artifacts
   cancel-in-progress: false
 jobs:
   refresh:
+    if: github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      BASE_BRANCH: ${{ github.event.repository.default_branch }}
+      DATA_BRANCH: automation/nfl-artifacts
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feature/2026-dashboard-mvp
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: pip
       - run: pip install -r requirements.txt
-      - run: python -m src.pipeline refresh
-      - name: Train only when no saved model exists
-        run: |
-          if [ ! -f artifacts/model.joblib ]; then python -m src.pipeline train; fi
-      - run: python -m src.pipeline predict --season 2026
-      - run: python -m src.pipeline evaluate
-      - name: Persist successful artifacts
+      - name: Continue durable history, then integrate reviewed code
         run: |
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
+          if git show-ref --verify --quiet "refs/remotes/origin/$DATA_BRANCH"; then
+            git switch -c "$DATA_BRANCH" "origin/$DATA_BRANCH"
+          else
+            git switch -c "$DATA_BRANCH"
+          fi
+          HISTORY_BASE=$(git rev-parse HEAD)
+          echo "HISTORY_BASE=$HISTORY_BASE" >> "$GITHUB_ENV"
+          git merge --no-edit "origin/$BASE_BRANCH"
+          python scripts/check_prediction_history.py "$HISTORY_BASE"
+      - run: python -m pytest -q
+      - run: python -m src.pipeline refresh
+      - name: Require reviewed model; never train implicitly
+        run: test -f artifacts/model.joblib
+      - run: python -m src.pipeline predict --season 2026
+      - run: python -m src.pipeline evaluate
+      - name: Persist append-only artifacts on the review branch
+        run: |
+          python scripts/check_prediction_history.py "$HISTORY_BASE"
           git add artifacts
           if ! git diff --cached --quiet; then
             git commit -m "data: refresh schedule and preserve pregame records"
-            git push origin HEAD:feature/2026-dashboard-mvp
+          fi
+          git push origin "HEAD:$DATA_BRANCH"
+      - name: Open a review PR if none is pending (never merge automatically)
+        run: |
+          if [ -z "$(gh pr list --head "$DATA_BRANCH" --base "$BASE_BRANCH" --state open --json number --jq '.[0].number // empty')" ]; then
+            if ! git diff --quiet "origin/$BASE_BRANCH" HEAD -- artifacts; then
+              printf '%s\n' 'Refreshed public schedule, append-only pregame records, and reconciled results. Review before merging; no automated merge or deployment is performed. Check source freshness, prediction timestamps, and workflow logs.' > "$RUNNER_TEMP/nfl-pr.md"
+              gh pr create --head "$DATA_BRANCH" --base "$BASE_BRANCH" --title "data: update NFL prediction artifacts" --body-file "$RUNNER_TEMP/nfl-pr.md"
+            fi
           fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: nfl-pipeline-artifacts
           path: artifacts/
-          retention-days: 30
+          retention-days: 90
