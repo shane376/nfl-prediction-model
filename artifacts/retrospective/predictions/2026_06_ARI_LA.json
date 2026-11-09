@@ -1,0 +1,40 @@
+{
+  "kind": "retrospective_backtest",
+  "season": 2026,
+  "week": 6,
+  "game_id": "2026_06_ARI_LA",
+  "home_team": "LA",
+  "away_team": "ARI",
+  "kickoff": "2026-10-18T20:05:00+00:00",
+  "generated_at": "2026-11-09T22:36:01.545650+00:00",
+  "feature_cutoff": "2026-10-18T20:05:00+00:00",
+  "training_cutoff": "2026-02-01T00:00:00+00:00",
+  "training_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "model_version": "v1A-pre2026-64572cfed775",
+  "model_generated_at": "2026-11-09T22:35:59.311526+00:00",
+  "home_probability": 0.6722205575428462,
+  "away_probability": 0.32777944245715385,
+  "predicted_winner": "LA",
+  "source_freshness": "2026-11-09T22:29:56.555745+00:00",
+  "source_stale": false,
+  "features": {
+    "home_win_pct": 0.4,
+    "home_streak": -1,
+    "home_avg_points": 23.8,
+    "home_avg_points_allowed": 24.0,
+    "home_point_diff": -0.1999999999999993,
+    "away_win_pct": 0.2,
+    "away_streak": -4,
+    "away_avg_points": 21.6,
+    "away_avg_points_allowed": 32.4,
+    "away_point_diff": -10.799999999999997,
+    "win_pct_diff": 0.2,
+    "streak_diff": 3,
+    "point_diff_diff": 10.599999999999998
+  },
+  "availability_assumption": "Latest final scores reconstructed with a 12-hour post-kickoff embargo; not an archived point-in-time source replay."
+}

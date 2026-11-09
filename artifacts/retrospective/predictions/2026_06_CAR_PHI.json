@@ -1,0 +1,40 @@
+{
+  "kind": "retrospective_backtest",
+  "season": 2026,
+  "week": 6,
+  "game_id": "2026_06_CAR_PHI",
+  "home_team": "PHI",
+  "away_team": "CAR",
+  "kickoff": "2026-10-18T17:00:00+00:00",
+  "generated_at": "2026-11-09T22:36:01.436243+00:00",
+  "feature_cutoff": "2026-10-18T17:00:00+00:00",
+  "training_cutoff": "2026-02-01T00:00:00+00:00",
+  "training_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "model_version": "v1A-pre2026-64572cfed775",
+  "model_generated_at": "2026-11-09T22:35:59.311526+00:00",
+  "home_probability": 0.46543778944180875,
+  "away_probability": 0.5345622105581913,
+  "predicted_winner": "CAR",
+  "source_freshness": "2026-11-09T22:29:56.555745+00:00",
+  "source_stale": false,
+  "features": {
+    "home_win_pct": 0.4,
+    "home_streak": -3,
+    "home_avg_points": 18.4,
+    "home_avg_points_allowed": 22.4,
+    "home_point_diff": -4.0,
+    "away_win_pct": 0.5,
+    "away_streak": 1,
+    "away_avg_points": 30.25,
+    "away_avg_points_allowed": 27.25,
+    "away_point_diff": 3.0,
+    "win_pct_diff": -0.09999999999999998,
+    "streak_diff": -4,
+    "point_diff_diff": -7.0
+  },
+  "availability_assumption": "Latest final scores reconstructed with a 12-hour post-kickoff embargo; not an archived point-in-time source replay."
+}

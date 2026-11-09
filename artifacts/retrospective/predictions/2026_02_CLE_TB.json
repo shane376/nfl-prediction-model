@@ -1,0 +1,40 @@
+{
+  "kind": "retrospective_backtest",
+  "season": 2026,
+  "week": 2,
+  "game_id": "2026_02_CLE_TB",
+  "home_team": "TB",
+  "away_team": "CLE",
+  "kickoff": "2026-09-20T17:00:00+00:00",
+  "generated_at": "2026-11-09T22:35:59.911816+00:00",
+  "feature_cutoff": "2026-09-20T17:00:00+00:00",
+  "training_cutoff": "2026-02-01T00:00:00+00:00",
+  "training_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "model_version": "v1A-pre2026-64572cfed775",
+  "model_generated_at": "2026-11-09T22:35:59.311526+00:00",
+  "home_probability": 0.7067417901993964,
+  "away_probability": 0.2932582098006036,
+  "predicted_winner": "TB",
+  "source_freshness": "2026-11-09T22:29:56.555745+00:00",
+  "source_stale": false,
+  "features": {
+    "home_win_pct": 0.0,
+    "home_streak": -1,
+    "home_avg_points": 27.0,
+    "home_avg_points_allowed": 33.0,
+    "home_point_diff": -6.0,
+    "away_win_pct": 0.0,
+    "away_streak": -1,
+    "away_avg_points": 10.0,
+    "away_avg_points_allowed": 34.0,
+    "away_point_diff": -24.0,
+    "win_pct_diff": 0.0,
+    "streak_diff": 0,
+    "point_diff_diff": 18.0
+  },
+  "availability_assumption": "Latest final scores reconstructed with a 12-hour post-kickoff embargo; not an archived point-in-time source replay."
+}

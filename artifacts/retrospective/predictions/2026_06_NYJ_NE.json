@@ -1,0 +1,40 @@
+{
+  "kind": "retrospective_backtest",
+  "season": 2026,
+  "week": 6,
+  "game_id": "2026_06_NYJ_NE",
+  "home_team": "NE",
+  "away_team": "NYJ",
+  "kickoff": "2026-10-18T17:00:00+00:00",
+  "generated_at": "2026-11-09T22:36:01.508165+00:00",
+  "feature_cutoff": "2026-10-18T17:00:00+00:00",
+  "training_cutoff": "2026-02-01T00:00:00+00:00",
+  "training_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "model_version": "v1A-pre2026-64572cfed775",
+  "model_generated_at": "2026-11-09T22:35:59.311526+00:00",
+  "home_probability": 0.6125185007631295,
+  "away_probability": 0.3874814992368705,
+  "predicted_winner": "NE",
+  "source_freshness": "2026-11-09T22:29:56.555745+00:00",
+  "source_stale": false,
+  "features": {
+    "home_win_pct": 0.6,
+    "home_streak": 2,
+    "home_avg_points": 22.0,
+    "home_avg_points_allowed": 18.8,
+    "home_point_diff": 3.1999999999999993,
+    "away_win_pct": 0.4,
+    "away_streak": 1,
+    "away_avg_points": 18.6,
+    "away_avg_points_allowed": 19.2,
+    "away_point_diff": -0.5999999999999979,
+    "win_pct_diff": 0.19999999999999996,
+    "streak_diff": 1,
+    "point_diff_diff": 3.799999999999997
+  },
+  "availability_assumption": "Latest final scores reconstructed with a 12-hour post-kickoff embargo; not an archived point-in-time source replay."
+}
