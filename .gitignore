@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 .venv/
+.venv-review/
+.review/
+artifacts/.prediction-writer.lock
 venv/
 .pytest_cache/
 .mypy_cache/
@@ -21,6 +24,11 @@ data/processed/
 models/saved/
 *.pkl
 *.joblib
+!artifacts/model.joblib
+.streamlit/secrets.toml
+artifacts/*.tmp
+artifacts/predictions/*.tmp
+training-results.txt
 
 # Jupyter
 .ipynb_checkpoints/

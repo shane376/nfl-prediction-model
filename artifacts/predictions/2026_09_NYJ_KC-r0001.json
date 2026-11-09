@@ -1,0 +1,20 @@
+{
+  "season": 2026,
+  "week": 9,
+  "game_id": "2026_09_NYJ_KC",
+  "home_team": "KC",
+  "away_team": "NYJ",
+  "kickoff": "2026-11-08T18:00:00+00:00",
+  "predicted_winner": "KC",
+  "home_probability": 0.6652242710208655,
+  "away_probability": 0.33477572897913455,
+  "model_version": "v1A-1aa64cb4b1",
+  "generated_at": "2026-11-05T21:59:37.004605+00:00",
+  "data_cutoff": "2026-11-05T21:59:37.004605+00:00",
+  "training_cutoff": "2026-11-05T21:57:09.561472+00:00",
+  "source_freshness": "2026-11-05T21:56:54.097165+00:00",
+  "source_stale": false,
+  "prediction_status": "recorded",
+  "kind": "live",
+  "revision": 1
+}
