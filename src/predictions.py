@@ -85,7 +85,7 @@ def integrity_error(record, game, current=None):
         lock_at = game.get("prediction_lock_at", actual_kickoff)
         if pd.notna(lock_at) and generated >= lock_at:
             return "Prediction is late against earliest known kickoff"
-        if game.status in ("postponed", "kickoff_unavailable"):
+        if game.status in ("postponed", "canceled", "suspended", "kickoff_unavailable"):
             return "Kickoff postponed or uncertain"
         if any(record[key] != game[key] for key in ("game_id", "season", "home_team", "away_team")):
             return "Matchup changed in latest schedule"

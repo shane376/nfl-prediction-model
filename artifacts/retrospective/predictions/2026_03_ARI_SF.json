@@ -1,0 +1,40 @@
+{
+  "kind": "retrospective_backtest",
+  "season": 2026,
+  "week": 3,
+  "game_id": "2026_03_ARI_SF",
+  "home_team": "SF",
+  "away_team": "ARI",
+  "kickoff": "2026-09-27T20:05:00+00:00",
+  "generated_at": "2026-11-09T22:36:00.428196+00:00",
+  "feature_cutoff": "2026-09-27T20:05:00+00:00",
+  "training_cutoff": "2026-02-01T00:00:00+00:00",
+  "training_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "model_version": "v1A-pre2026-64572cfed775",
+  "model_generated_at": "2026-11-09T22:35:59.311526+00:00",
+  "home_probability": 0.8218627923390037,
+  "away_probability": 0.17813720766099628,
+  "predicted_winner": "SF",
+  "source_freshness": "2026-11-09T22:29:56.555745+00:00",
+  "source_stale": false,
+  "features": {
+    "home_win_pct": 1.0,
+    "home_streak": 2,
+    "home_avg_points": 31.0,
+    "home_avg_points_allowed": 10.0,
+    "home_point_diff": 21.0,
+    "away_win_pct": 0.5,
+    "away_streak": -1,
+    "away_avg_points": 16.5,
+    "away_avg_points_allowed": 22.5,
+    "away_point_diff": -6.0,
+    "win_pct_diff": 0.5,
+    "streak_diff": 3,
+    "point_diff_diff": 27.0
+  },
+  "availability_assumption": "Latest final scores reconstructed with a 12-hour post-kickoff embargo; not an archived point-in-time source replay."
+}

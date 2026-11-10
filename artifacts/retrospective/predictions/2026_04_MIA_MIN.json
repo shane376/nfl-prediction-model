@@ -1,0 +1,40 @@
+{
+  "kind": "retrospective_backtest",
+  "season": 2026,
+  "week": 4,
+  "game_id": "2026_04_MIA_MIN",
+  "home_team": "MIN",
+  "away_team": "MIA",
+  "kickoff": "2026-10-04T20:05:00+00:00",
+  "generated_at": "2026-11-09T22:36:00.828261+00:00",
+  "feature_cutoff": "2026-10-04T20:05:00+00:00",
+  "training_cutoff": "2026-02-01T00:00:00+00:00",
+  "training_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "model_version": "v1A-pre2026-64572cfed775",
+  "model_generated_at": "2026-11-09T22:35:59.311526+00:00",
+  "home_probability": 0.860698664693057,
+  "away_probability": 0.139301335306943,
+  "predicted_winner": "MIN",
+  "source_freshness": "2026-11-09T22:29:56.555745+00:00",
+  "source_stale": false,
+  "features": {
+    "home_win_pct": 1.0,
+    "home_streak": 3,
+    "home_avg_points": 23.666666666666668,
+    "home_avg_points_allowed": 13.666666666666666,
+    "home_point_diff": 10.000000000000002,
+    "away_win_pct": 0.0,
+    "away_streak": -3,
+    "away_avg_points": 12.0,
+    "away_avg_points_allowed": 28.666666666666668,
+    "away_point_diff": -16.666666666666668,
+    "win_pct_diff": 1.0,
+    "streak_diff": 6,
+    "point_diff_diff": 26.66666666666667
+  },
+  "availability_assumption": "Latest final scores reconstructed with a 12-hour post-kickoff embargo; not an archived point-in-time source replay."
+}

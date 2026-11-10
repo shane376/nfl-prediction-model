@@ -1,0 +1,40 @@
+{
+  "kind": "retrospective_backtest",
+  "season": 2026,
+  "week": 8,
+  "game_id": "2026_08_KC_DEN",
+  "home_team": "DEN",
+  "away_team": "KC",
+  "kickoff": "2026-11-01T21:25:00+00:00",
+  "generated_at": "2026-11-09T22:36:02.299904+00:00",
+  "feature_cutoff": "2026-11-01T21:25:00+00:00",
+  "training_cutoff": "2026-02-01T00:00:00+00:00",
+  "training_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "model_version": "v1A-pre2026-64572cfed775",
+  "model_generated_at": "2026-11-09T22:35:59.311526+00:00",
+  "home_probability": 0.4698083349517214,
+  "away_probability": 0.5301916650482785,
+  "predicted_winner": "KC",
+  "source_freshness": "2026-11-09T22:29:56.555745+00:00",
+  "source_stale": false,
+  "features": {
+    "home_win_pct": 0.7142857142857143,
+    "home_streak": 3,
+    "home_avg_points": 20.571428571428573,
+    "home_avg_points_allowed": 20.142857142857142,
+    "home_point_diff": 0.4285714285714306,
+    "away_win_pct": 0.8333333333333334,
+    "away_streak": -1,
+    "away_avg_points": 23.833333333333332,
+    "away_avg_points_allowed": 17.166666666666668,
+    "away_point_diff": 6.666666666666664,
+    "win_pct_diff": -0.11904761904761907,
+    "streak_diff": 4,
+    "point_diff_diff": -6.238095238095234
+  },
+  "availability_assumption": "Latest final scores reconstructed with a 12-hour post-kickoff embargo; not an archived point-in-time source replay."
+}

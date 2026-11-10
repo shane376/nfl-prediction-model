@@ -25,9 +25,12 @@ models/saved/
 *.pkl
 *.joblib
 !artifacts/model.joblib
+!artifacts/retrospective/model.joblib
 .streamlit/secrets.toml
 artifacts/*.tmp
 artifacts/predictions/*.tmp
+artifacts/retrospective/**/*.tmp
+artifacts/retrospective/*.tmp
 training-results.txt
 
 # Jupyter
