@@ -7,6 +7,8 @@ __pycache__/
 artifacts/.prediction-writer.lock
 venv/
 .pytest_cache/
+.pytest-tmp*/
+.coverage-v12.json
 .mypy_cache/
 
 # Environment variables and secrets
