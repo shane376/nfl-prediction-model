@@ -14,6 +14,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python -m pytest -q
       - run: python -m src.pipeline audit --offline
+      - run: python -m src.pipeline coverage --offline
       - name: Protect saved pregame history in pull requests
         if: github.event_name == 'pull_request'
         env:

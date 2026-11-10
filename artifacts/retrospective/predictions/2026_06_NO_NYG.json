@@ -1,0 +1,40 @@
+{
+  "kind": "retrospective_backtest",
+  "season": 2026,
+  "week": 6,
+  "game_id": "2026_06_NO_NYG",
+  "home_team": "NYG",
+  "away_team": "NO",
+  "kickoff": "2026-10-18T17:00:00+00:00",
+  "generated_at": "2026-11-09T22:36:01.484482+00:00",
+  "feature_cutoff": "2026-10-18T17:00:00+00:00",
+  "training_cutoff": "2026-02-01T00:00:00+00:00",
+  "training_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "model_version": "v1A-pre2026-64572cfed775",
+  "model_generated_at": "2026-11-09T22:35:59.311526+00:00",
+  "home_probability": 0.6837342680607291,
+  "away_probability": 0.3162657319392709,
+  "predicted_winner": "NYG",
+  "source_freshness": "2026-11-09T22:29:56.555745+00:00",
+  "source_stale": false,
+  "features": {
+    "home_win_pct": 0.7,
+    "home_streak": 0,
+    "home_avg_points": 21.8,
+    "home_avg_points_allowed": 21.2,
+    "home_point_diff": 0.6000000000000014,
+    "away_win_pct": 0.2,
+    "away_streak": -3,
+    "away_avg_points": 23.6,
+    "away_avg_points_allowed": 30.2,
+    "away_point_diff": -6.599999999999998,
+    "win_pct_diff": 0.49999999999999994,
+    "streak_diff": 3,
+    "point_diff_diff": 7.199999999999999
+  },
+  "availability_assumption": "Latest final scores reconstructed with a 12-hour post-kickoff embargo; not an archived point-in-time source replay."
+}

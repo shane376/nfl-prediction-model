@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from urllib.request import urlopen
 import pandas as pd
+from src.teams import NAMES
 
 ROOT = Path(__file__).resolve().parents[1]
 STORE = Path(os.environ.get("NFL_STORE", ROOT / "artifacts"))
@@ -30,9 +31,18 @@ def write_json(path, value):
 
 
 def normalize(raw):
+    required = {"game_id", "season", "week", "game_type", "home_team", "away_team", "home_score", "away_score"}
+    if required - set(raw):
+        raise ValueError(f"Missing schedule columns: {sorted(required - set(raw))}")
     games = raw.loc[raw.season.between(2023, 2026) & raw.game_type.eq("REG")].copy()
+    if not games.week.between(1, 18).all() or not games.week.mod(1).eq(0).all():
+        raise ValueError("Regular-season weeks must be integers from 1 to 18")
     for side in ("home", "away"):
         games[f"{side}_team"] = games[f"{side}_team"].replace({"JAC": "JAX", "LAR": "LA", "WSH": "WAS", "OAK": "LV", "SD": "LAC"})
+        if not games[f"{side}_team"].isin(NAMES).all():
+            raise ValueError(f"Unknown or missing {side} team identifier")
+    if games.home_team.eq(games.away_team).any():
+        raise ValueError("A team cannot play itself")
     if "kickoff" not in games:
         # A date without a published time must stay TBD, never become midnight.
         clock = games.gametime.astype("string")
@@ -59,8 +69,7 @@ def normalize(raw):
         invalid = games[column].notna() & ((games[column] < 0) | (games[column] % 1 != 0))
         if invalid.any():
             raise ValueError(f"Invalid {column}; scores must be finite nonnegative integers")
-    unavailable = games.get("status", pd.Series("", index=games.index)).astype("string").str.lower().isin(
-        ["postponed", "cancelled", "canceled", "suspended"])
+    source_status = games.get("status", pd.Series("", index=games.index)).astype("string").str.lower()
     scored = games.home_score.notna() & games.away_score.notna()
     # nflverse supplies final scores, but no final whistle timestamp. A conservative
     # 12-hour embargo is conservative, not proof of an actual final whistle.
@@ -69,12 +78,22 @@ def normalize(raw):
     games.loc[~scored & games.kickoff.le(now()), "status"] = "underway_or_unavailable"
     games.loc[games.home_score.notna() ^ games.away_score.notna(), "status"] = "result_unavailable"
     games.loc[scored, "status"] = "completed"
-    games.loc[unavailable, "status"] = "postponed"
-    games.loc[games.kickoff.isna(), "status"] = "kickoff_unavailable"
+    for value in ("postponed", "canceled", "suspended"):
+        games.loc[source_status.replace({"cancelled": "canceled"}).eq(value), "status"] = value
+    games.loc[source_status.eq("in_progress"), "status"] = "underway_or_unavailable"
+    games.loc[games.kickoff.isna() & ~games.status.isin(["postponed", "canceled", "suspended"]), "status"] = "kickoff_unavailable"
+    games["is_tie"] = games.status.eq("completed") & games.home_score.eq(games.away_score)
     if games.game_id.isna().any() or not games.game_id.astype(str).str.fullmatch(r"[A-Za-z0-9_-]+").all():
         raise ValueError("Missing or unsafe source game ID")
     if games.game_id.duplicated().any():
         raise ValueError("Duplicate source game IDs")
+    if games.duplicated(["season", "home_team", "away_team", "kickoff"]).any():
+        raise ValueError("Duplicate game matchup/kickoff")
+    known = games.loc[games.kickoff.notna() & ~games.status.eq("canceled")]
+    appearances = pd.concat([known[["kickoff", "home_team"]].rename(columns={"home_team": "team"}),
+                             known[["kickoff", "away_team"]].rename(columns={"away_team": "team"})])
+    if appearances.duplicated(["kickoff", "team"]).any():
+        raise ValueError("Team scheduled in two games at the same kickoff")
     return games.sort_values("kickoff").reset_index(drop=True)
 
 

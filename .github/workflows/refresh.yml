@@ -44,8 +44,11 @@ jobs:
       - run: python -m pytest -q
       - run: python -m src.pipeline refresh
       - name: Require reviewed model; never train implicitly
-        run: test -f artifacts/model.joblib
+        run: |
+          test -f artifacts/model.joblib
+          test -f artifacts/retrospective/model.joblib
       - run: python -m src.pipeline predict --season 2026
+      - run: python -m src.pipeline backtest --offline
       - run: python -m src.pipeline evaluate
       - name: Persist append-only artifacts on the review branch
         run: |

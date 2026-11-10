@@ -1,0 +1,19 @@
+{
+  "version": "v1A-pre2026-64572cfed775",
+  "variant": "A",
+  "features": [
+    "win_pct_diff",
+    "point_diff_diff"
+  ],
+  "training_cutoff": "2026-02-01T00:00:00+00:00",
+  "training_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "training_games": 815,
+  "training_data_sha256": "64572cfed7755fadd774664f60cbb1e8657144a7646e1201a36441c21b229f24",
+  "last_training_result_available_at": "2026-01-05T13:20:00+00:00",
+  "generated_at": "2026-11-09T22:35:59.311526+00:00",
+  "policy": "Fixed V1 A, C=1, threshold=.5; fit only 2023\u20132025 regular seasons available before 2026-02-01. Reconstructed now and frozen for 2026; no 2026 outcomes used for fitting or selection."
+}

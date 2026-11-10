@@ -1,6 +1,6 @@
 # NFL prediction model · 2026 dashboard
 
-Local Streamlit dashboard built on the existing V1 logistic regression models. Displays real nflverse schedules, saved pregame probabilities, a separate 2025 historical backtest, and persistent live prediction history. No retraining or prediction writes occur on dashboard page loads.
+Local Streamlit dashboard built on the existing V1 logistic regression models. Represents the entire 2026 regular season with real nflverse schedules, saved pregame probabilities, separate 2026 retrospective backtests, a separate 2025 holdout, and persistent prediction history. No retraining or prediction writes occur on dashboard page loads.
 
 ## Run locally (PowerShell, Python 3.12)
 
@@ -22,6 +22,8 @@ From the repository root:
 .venv/Scripts/python.exe -m src.pipeline predict --season 2026 --week 10
 .venv/Scripts/python.exe -m src.pipeline evaluate
 .venv/Scripts/python.exe -m src.pipeline audit --offline
+.venv/Scripts/python.exe -m src.pipeline backtest --offline
+.venv/Scripts/python.exe -m src.pipeline coverage --offline
 .venv/Scripts/python.exe -m pytest -q
 ```
 
@@ -36,6 +38,30 @@ Once the earliest kickoff seen in the store, the recorded kickoff, or the curren
 `evaluate` recomputes live metrics from the **first recorded live revision per game** and completed results. It validates timezone-aware timestamps (`training cutoff <= data cutoff <= generation < recorded/latest/earliest-known kickoff`), source provenance, matchup, winner, and finite complementary probabilities. Missing/uncertain kickoffs, changed matchups and invalid metadata become explicitly unavailable, without promoting a later revision over the original. Ties are shown separately and excluded from binary accuracy/log loss/Brier. Missing scores remain pending. No retrospective pick is inserted for an already-started game.
 
 `audit` is read-only: it validates every saved revision against the latest source schedule and exits nonzero on invalid or unavailable records. The provider supplies published kickoff times, not independent verified actual-start timestamps; this audit cannot prove an actual start time the provider does not publish. Git publication times provide an additional check for the existing records, but are not signed external timestamp attestations.
+
+## V1.1 · Season coverage and retrospective evaluation
+
+Missing forecasts do not mean missing schedule data. The initial snapshot already contained all 272 games, but only Weeks 9–10 had saved forecasts because those were the weeks explicitly recorded after the MVP was created. Earlier games could not receive an authentic pick after kickoff. `SEASON_COVERAGE_BEFORE.md` preserves the required pre-implementation audit; `V1_1_REPORT.md` contains the final week-by-week coverage and separate performance tables.
+
+`coverage` prints a read-only JSON report for Weeks 1–18, including schedule rows, completed results, ties, postponed/canceled games, authentic/retrospective records, missing past/future authentic picks, missing eligible retrospective backtests, result embargo counts and missing required data. It also checks the full season has 272 rows, 32 known teams and 17 scheduled appearances per team. Unknown teams, duplicate IDs/matchups, teams playing simultaneous games, bad weeks, invalid scores and uncertain timestamps are guarded during ingestion. Cancellation and suspension are preserved separately from postponement when supplied by the source; a missing upstream game ID fails refresh rather than inventing cancellation information.
+
+`backtest` adds only completed 2026 games **without any archived prediction record** and past the result embargo. It creates/reuses a separate frozen V1 **A** artifact trained on **2023–2025 regular seasons only**, with a **2026-02-01 UTC training cutoff**. This includes the January 2026 games belonging to the 2025 season; it excludes every 2026-season result. A was fixed from the existing pre-sprint policy; no 2026 outcomes select features or hyperparameters. C=1 and the decision threshold=.5 remain fixed. The production model is not used or modified for retrospective evaluation.
+
+The artifact is reconstructed and fitted **now**, then frozen; its training-data cutoff is not a claim that the file existed before 2026. Every new record has `kind: retrospective_backtest`, its actual `generated_at`, separate historical `feature_cutoff` equal to that game's kickoff, model generation time/version, training seasons/cutoff and the feature values used. Target-game and future results are excluded. No original timestamp is invented, and no archived pick is overwritten or reclassified. Repeated runs skip existing immutable retrospective files. The frozen model is reused without retraining on refresh.
+
+Retrospective features reconstruct season-to-date information from the latest final-score snapshot, applying the same 12-hour post-kickoff availability assumption as training. They are **not point-in-time archived source replays**; later score corrections cannot be proven known at the original cutoff. Changed historical feature inputs or kickoffs are flagged unavailable at reconciliation and require review, rather than silently rewriting an old backtest. A newly imported authentic archive takes precedence over an existing retrospective entry, which remains on disk but is excluded from retrospective metrics.
+
+`evaluate` now saves `artifacts/season-report.json` with separate recorded and retrospective summaries and weekly/cumulative metrics. The dashboard recomputes these cohorts read-only. Each gets its own accuracy, correct/incorrect counts, home baseline on the same non-tied games, Brier score, log loss and probability distribution. Ties are displayed and excluded from binary scoring. Pending forecasts never enter accuracy. The separate 2025 holdout remains under an expandable section. Future weeks stay visible without invented forecasts or results.
+
+New artifacts:
+
+| Path | Meaning |
+|---|---|
+| `artifacts/retrospective/model.joblib`, `model.json` | Frozen prior-season model and provenance; separate from production |
+| `artifacts/retrospective/predictions/*.json` | Immutable, explicitly retrospective 2026 predictions |
+| `artifacts/season-report.json` | Timestamped coverage and separate cohort metrics |
+
+To initialize a new clone without those artifacts, explicitly run `backtest --offline`, then `evaluate --offline`. Normal deployments use the reviewed checked-in frozen model. An incomplete or stale source remains visibly labeled; retrospective records retain its freshness flag. No retrospective computation occurs during dashboard page loads beyond read-only validation/scoring of saved records.
 
 `--offline` on train/evaluate/audit reads the committed snapshot without a network call. Live `predict --offline` is intentionally rejected to prevent fixtures from becoming live picks; normal `predict` already reads the cached source without networking. Tests use explicitly synthetic deterministic fixtures in `tests/conftest.py`, isolated in temporary storage. `NFL_STORE` can select another artifact directory; set it before starting Python. Use a single writer per store. If a process crashes while holding `artifacts/.prediction-writer.lock`, confirm no prediction writer is running before manually removing only that lock. Never delete or rewrite prediction JSON files to recover a run. Create-only publication requires a filesystem supporting hard links (NTFS on Windows, standard GitHub Linux runner filesystems).
 
@@ -84,7 +110,7 @@ The source labels November 5, 2026 as **Week 9**, rather than the sprint request
 
 `.github/workflows/ci.yml` runs deterministic offline unit/integration/UI tests, audits checked-in records, and rejects changes/deletions of original prediction files in PRs. `.github/workflows/refresh.yml` runs every 30 minutes **from the default branch**, expected to be `main`, after approved integration. Feature-branch dispatch is intentionally skipped. No obsolete feature-branch push target remains.
 
-The refresh job resumes the long-lived `automation/nfl-artifacts` branch, merges reviewed default-branch code, tests, refreshes, predicts and evaluates. It checks that original predictions are unchanged before and after processing, then makes a normal (never force) push **only to the artifact branch** and opens/reuses a PR into the default branch. It never pushes directly to `main`, approves/merges a PR, trains implicitly, or deploys. The reviewed model must already exist. **Public dashboard updates require review and merge of the artifact PR**; unmerged new picks remain durably recorded in Git on the artifact branch. Review its latest commit, not an earlier snapshot. Keep the artifact branch and use merge commits for recurring PRs so Git ancestry remains intact; squash/rebase merges or deleting the branch require checking all unmerged prediction records have been preserved before recovery.
+The refresh job resumes the long-lived `automation/nfl-artifacts` branch, merges reviewed default-branch code, tests, refreshes, records upcoming pregame picks, backfills missing retrospective games and evaluates. It requires both reviewed production and frozen retrospective models; the backtest step reuses the frozen artifact. It checks that original predictions are unchanged before and after processing, then makes a normal (never force) push **only to the artifact branch** and opens/reuses a PR into the default branch. It never pushes directly to `main`, approves/merges a PR, trains a production model implicitly, or deploys. **Public dashboard updates require review and merge of the artifact PR**; unmerged new picks remain durably recorded in Git on the artifact branch. Review its latest commit, not an earlier snapshot. Keep the artifact branch and use merge commits for recurring PRs so Git ancestry remains intact; squash/rebase merges or deleting the branch require checking all unmerged prediction records have been preserved before recovery.
 
 Repository settings required after approval:
 
@@ -97,9 +123,9 @@ On source/validation/test failure the job stops before pushing artifacts; previo
 
 For Streamlit Community Cloud:
 
-1. Review the pushed `feature/2026-dashboard-mvp` changes, CI and `PREMERGE_REVIEW.md`; obtain approval before merging into `main` or deploying.
+1. Review the pushed `feature/v1.1-season-coverage` changes, CI and `V1_1_REPORT.md`; obtain approval before merging into `main` or deploying.
 2. After approval, create a Community Cloud app for `shane376/nfl-prediction-model`, select `main` (or an explicitly approved staging branch), set entrypoint **`dashboard/app.py`**, open Advanced settings and choose **Python 3.12**, then deploy.
-3. The root `requirements.txt` installs the tested lockfile automatically. Joblib models require matching scikit-learn versions; update the lockfile whenever you deliberately retrain with changed dependencies.
+3. The root `requirements.txt` installs the tested lockfile automatically. Confirm both `artifacts/model.joblib` and `artifacts/retrospective/model.joblib`, the archived picks and retrospective records are tracked. Joblib models require matching scikit-learn versions; update the lockfile whenever you deliberately retrain with changed dependencies. V1.1 adds no package or framework requirement.
 4. Verify the deployed URL, selected week, model metadata and freshness before sharing it.
 5. Apply the Actions permissions above, dispatch **Refresh pregame predictions** from `main`, inspect its artifact branch/PR and run CI on the PR head if needed. Review and merge the artifact PR to publish the latest data.
 6. Verify all four tabs, current-week kickoffs in Eastern time, recorded model versions and source freshness at the actual public URL. Confirm the next scheduled run succeeds and newly recorded picks precede kickoff. Do not claim deployment complete before that URL check.

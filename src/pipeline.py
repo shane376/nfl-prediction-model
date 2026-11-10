@@ -7,7 +7,7 @@ from src.data import load, now
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["refresh", "train", "predict", "evaluate", "audit"])
+    parser.add_argument("command", choices=["refresh", "train", "predict", "evaluate", "audit", "backtest", "coverage"])
     parser.add_argument("--season", type=int, default=2026)
     parser.add_argument("--week", type=int, choices=range(1, 19))
     parser.add_argument("--offline", action="store_true", help="Read cached schedule without network access")
@@ -26,6 +26,12 @@ def main():
     elif args.command == "predict":
         from src.predictions import predict
         print(f"Recorded {predict(games, source, args.season, args.week, args.rerun)} predictions")
+    elif args.command == "backtest":
+        from src.retrospective import backtest
+        print(f"Added {backtest(games, source)} retrospective_backtest records (archived picks untouched)")
+    elif args.command == "coverage":
+        from src.season import season_report
+        print(json.dumps(season_report(games, source), indent=2))
     elif args.command == "audit":
         from src.predictions import audit
         result = audit(games)
@@ -34,7 +40,9 @@ def main():
             raise SystemExit("Prediction integrity audit found unavailable/invalid records")
     else:
         from src.predictions import reconcile
+        from src.season import season_report
         print(json.dumps(reconcile(games), indent=2))
+        print(json.dumps(season_report(games, source, persist=True), indent=2))
 
 
 if __name__ == "__main__":

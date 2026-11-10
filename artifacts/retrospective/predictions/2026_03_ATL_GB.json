@@ -1,0 +1,40 @@
+{
+  "kind": "retrospective_backtest",
+  "season": 2026,
+  "week": 3,
+  "game_id": "2026_03_ATL_GB",
+  "home_team": "GB",
+  "away_team": "ATL",
+  "kickoff": "2026-09-25T00:15:00+00:00",
+  "generated_at": "2026-11-09T22:36:00.178063+00:00",
+  "feature_cutoff": "2026-09-25T00:15:00+00:00",
+  "training_cutoff": "2026-02-01T00:00:00+00:00",
+  "training_seasons": [
+    2023,
+    2024,
+    2025
+  ],
+  "model_version": "v1A-pre2026-64572cfed775",
+  "model_generated_at": "2026-11-09T22:35:59.311526+00:00",
+  "home_probability": 0.7220698573131398,
+  "away_probability": 0.2779301426868602,
+  "predicted_winner": "GB",
+  "source_freshness": "2026-11-09T22:29:56.555745+00:00",
+  "source_stale": false,
+  "features": {
+    "home_win_pct": 0.5,
+    "home_streak": 1,
+    "home_avg_points": 21.0,
+    "home_avg_points_allowed": 28.0,
+    "home_point_diff": -7.0,
+    "away_win_pct": 0.0,
+    "away_streak": -2,
+    "away_avg_points": 8.0,
+    "away_avg_points_allowed": 27.0,
+    "away_point_diff": -19.0,
+    "win_pct_diff": 0.5,
+    "streak_diff": 3,
+    "point_diff_diff": 12.0
+  },
+  "availability_assumption": "Latest final scores reconstructed with a 12-hour post-kickoff embargo; not an archived point-in-time source replay."
+}

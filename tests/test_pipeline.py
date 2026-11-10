@@ -7,13 +7,6 @@ from src.pregame import features, training_rows
 from src import data, modeling, predictions
 
 
-@pytest.fixture
-def store(tmp_path, monkeypatch):
-    for module in (data, modeling, predictions):
-        monkeypatch.setattr(module, "STORE", tmp_path)
-    return tmp_path
-
-
 def test_features_and_no_future_leakage(games):
     game = games.loc[(games.season == 2025) & (games.week == 3)].iloc[0]
     x = features(games, game, game.kickoff)
