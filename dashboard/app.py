@@ -267,9 +267,13 @@ if view == "Season performance":
                 st.info("No eligible scored games in this cohort yet. Accuracy appears after a valid prediction has a non-tied, eligible final result.")
             valid = [r["home_probability"] for r in cohort if not r.get("integrity_error")]
             if valid:
-                distribution = pd.Series(pd.cut(valid, bins=[i / 10 for i in range(11)], include_lowest=True)).value_counts(sort=False)
-                distribution.index = distribution.index.astype(str)
-                st.bar_chart(distribution, alt=f"{title}: home-win probability distribution, including pending recorded games")
+                bands = [f"{i * 10}-{(i + 1) * 10}%" for i in range(10)]
+                distribution = pd.Series(pd.cut(valid, bins=[i / 10 for i in range(11)], labels=bands, include_lowest=True)).value_counts(sort=False)
+                probability_counts = distribution.rename_axis("Home win probability").reset_index(name="Predictions")
+                histogram = cast(alt.Chart, alt.Chart(probability_counts).mark_bar(tooltip=False)).encode(
+                    x=alt.X("Home win probability:O", sort=bands),
+                    y=alt.Y("Predictions:Q", axis=alt.Axis(tickMinStep=1))).properties(height=180)
+                st.altair_chart(histogram, width="stretch", alt=f"{title}: home-win probability distribution, including pending recorded games")
             with st.expander(f"Weekly evaluation details · {title}"):
                 st.dataframe(weekly_metrics, alt=f"Weekly metrics for {title}")
     st.caption("Cohorts are never combined. Retrospective picks were generated after the games using historical cutoffs, not archived pregame timestamps. Baselines use the exact same scored non-tied games in each cohort.")

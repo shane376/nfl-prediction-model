@@ -93,3 +93,26 @@ def test_dashboard_offline_read_only_all_views(monkeypatch):
         app.radio[0].set_value(view).run()
         assert not app.exception
     assert before == hashes()
+
+
+def test_probability_charts_do_not_expose_raw_diagnostic_tooltips(games, store, monkeypatch):
+    import json
+    from streamlit.testing.v1 import AppTest
+    from src import data, predictions, retrospective
+    games.to_csv(store / "games.csv", index=False)
+    data.write_json(store / "source.json", {"fetched_at": CURRENT.isoformat()})
+    row = {"season": 2026, "week": 1, "game_id": games.iloc[-1].game_id,
+           "kind": "live", "target": 1, "home_probability": .55,
+           "predicted_winner": "BUF", "result": "correct"}
+    monkeypatch.setattr(predictions, "reconciliation", lambda games: ([row], {}))
+    monkeypatch.setattr(retrospective, "retrospective_results", lambda games: [{**row, "kind": "retrospective_backtest"}])
+    app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "dashboard/app.py"), default_timeout=30).run()
+    app.radio(key="view").set_value("Season performance").run()
+    assert not app.exception
+    specs = [json.loads(chart.proto.spec) for chart in app.get("vega_lite_chart")]
+    histograms = [spec for spec in specs if spec.get("encoding", {}).get("x", {}).get("field") == "Home win probability"]
+    assert len(histograms) == 2  # Both recorded and retrospective cohorts.
+    for spec in histograms:
+        assert spec["mark"]["tooltip"] is False
+        assert "tooltip" not in spec["encoding"]
+        assert spec["encoding"]["y"]["field"] == "Predictions"
