@@ -1,0 +1,29 @@
+/* Scoped football content only. Native controls and grid handle application layout. */
+.gl-matchup { font-size: .94rem; line-height: 1.4; }
+.gl-kickoff, .gl-muted { color: #acbacb; font-size: .8rem; }
+.gl-kickoff { margin-bottom: .55rem; }
+.gl-team { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; padding: .18rem 0; }
+.gl-team span { min-width: 0; overflow-wrap: anywhere; }
+.gl-team b { display: inline-block; min-width: 2.8rem; color: #dce8f4; }
+.gl-team strong { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.gl-headline { font-size: 1rem; font-weight: 700; margin-top: .6rem; }
+.gl-schedule { padding: 0; margin: 0; list-style: none; }
+.gl-schedule-row { display: grid; grid-template-columns: 3.5rem minmax(0, 1.5fr) minmax(5.5rem, .6fr) minmax(0, 1fr); align-items: center; gap: 1rem; border: 1px solid #283747; border-radius: .55rem; padding: .8rem 1rem; margin-bottom: .5rem; background: #101923; font-size: .9rem; }
+.gl-upcoming { border-left: 3px solid #50d890; }
+.gl-week { font-weight: 700; font-variant-numeric: tabular-nums; }
+.gl-week span { display: block; color: #acbacb; font-size: .75rem; font-weight: 400; }
+.gl-opponent, .gl-forecast { display: flex; flex-direction: column; gap: .2rem; min-width: 0; overflow-wrap: anywhere; }
+.gl-result { font-weight: 700; }
+.gl-win { color: #78efac; } .gl-loss { color: #ffabab; }
+.gl-tie, .gl-pending { color: #c4d2e1; }
+.gl-tag { width: fit-content; padding: .05rem .35rem; border-radius: .25rem; font-size: .75rem; font-weight: 600; }
+.gl-live { background: #173c2d; color: #8df0b5; }
+.gl-retrospective_backtest { background: #322943; color: #dfc6ff; }
+.gl-provisional { background: #443419; color: #ffdc9e; }
+.gl-unavailable { background: #263441; color: #d6e2ee; }
+@media (max-width: 750px) {
+  .gl-schedule-row { grid-template-columns: 2.6rem minmax(0, 1fr); gap: .35rem .7rem; padding: .7rem; }
+  .gl-week { grid-row: span 2; align-self: start; }
+  .gl-result { grid-column: 2; }
+  .gl-forecast { grid-column: 2; }
+}

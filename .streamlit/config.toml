@@ -11,8 +11,10 @@ borderColor = "#283747"
 baseRadius = "0.6rem"
 showWidgetBorder = true
 showSidebarBorder = true
-paddingTop = "2rem"
-paddingBottom = "2rem"
+paddingTop = "0.5rem"
+paddingBottom = "1rem"
+baseFontSize = 15
+metricValueFontSize = "1.75rem"
 chartCategoricalColors = ["#50d890", "#8ca4bc", "#c8abef", "#f2c078"]
 
 [theme.sidebar]

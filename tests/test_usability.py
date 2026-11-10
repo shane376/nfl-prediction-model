@@ -6,7 +6,8 @@ import pytest
 from src.data import normalize
 from src.teams import NAMES
 from src.presentation import (matchup_rows, filter_matchups, team_schedule,
-                              team_record, remaining_wins_estimate)
+                              team_record, remaining_wins_estimate, adjacent_week,
+                              football_display, matchup_html, schedule_html)
 
 CURRENT = pd.Timestamp("2026-11-05T20:00:00Z")
 
@@ -105,6 +106,9 @@ def test_all_32_teams_have_17_source_games():
         assert len({r["game_id"] for r in schedule}) == 17
         assert all(r["opponent"] != team and r["opponent"] in NAMES for r in schedule)
         assert all(r["forecast_type"] == "unavailable" for r in schedule)
+        markup = schedule_html(schedule)
+        assert markup.count('<li class="gl-schedule-row') == 17
+        assert "<table" not in markup
         actual = team_record(schedule)
         total_wins += actual["wins"]
         total_losses += actual["losses"]
@@ -145,8 +149,9 @@ def test_weekly_and_explorer_user_journey():
     assert not app.exception
     assert len(app.selectbox(key="explorer_team").options) == 32
     app.selectbox(key="explorer_team").select("BUF").run()
-    assert len(app.dataframe[0].value) == 17
-    assert "Actual result" in app.dataframe[0].value
+    schedule_markup = next(element.value for element in app.html if 'gl-schedule' in element.value)
+    assert schedule_markup.count('<li class="gl-schedule-row') == 17
+    assert "Regular-season team schedule" in schedule_markup
     app.checkbox(key="explorer_estimate").check().run()
     assert not app.exception
     assert any("Estimate unavailable" in e.value for e in app.info)
@@ -179,3 +184,74 @@ def test_unreadable_archive_withholds_estimates(games, store, monkeypatch):
     assert model.predict_proba.called  # A viable estimate existed before the archive check.
     assert any("Estimates are withheld" in e.value for e in app.info)
     assert not any("Favored:" in m.value for m in app.markdown)
+
+
+@pytest.mark.parametrize("week,direction,expected", [(1, -1, 1), (18, 1, 18), (10, -1, 9),
+                                                     (10, 1, 11), ("All weeks", -1, 18),
+                                                     ("All weeks", 1, 1)])
+def test_week_navigation_boundaries(week, direction, expected):
+    assert adjacent_week(week, direction) == expected
+
+
+def test_finals_lead_with_actual_winner_upcoming_with_forecast(matchups):
+    recorded, retro, provisional, missing = matchups
+    assert football_display(recorded)["headline"] == "Final | BUF wins"
+    assert football_display(retro)["headline"] == "Final | MIA wins"
+    assert football_display(provisional)["headline"] == "BUF to win | 80%"
+    assert football_display(provisional)["probabilities"] == "KC 20% / BUF 80%"
+    assert football_display(missing)["headline"] == "Forecast unavailable"
+    assert football_display(missing)["probabilities"] == ""
+    assert "<strong>21</strong>" in matchup_html(recorded)
+    assert "<strong>nan</strong>" not in matchup_html(missing)
+    assert "<strong>0</strong>" not in matchup_html(missing)
+    assert "Backtest: MIA" in matchup_html(retro)
+    assert "to win" not in matchup_html(retro)
+
+
+def test_correctness_only_for_eligible_recorded_picks(matchups):
+    recorded = {**matchups[0], "forecast": {**matchups[0]["forecast"], "result": "correct", "target": 1}}
+    assert football_display(recorded)["outcome"] == "Recorded pick correct"
+    pending = {**recorded, "forecast": {**recorded["forecast"], "target": None}}
+    assert football_display(pending)["outcome"] == ""
+    for kind in ("retrospective_backtest", "provisional", "unavailable"):
+        assert football_display({**recorded, "forecast_type": kind})["outcome"] == ""
+    tied = {**recorded, "home_score": 7., "away_score": 7., "forecast": {**recorded["forecast"], "result": "tie", "target": None}}
+    assert football_display(tied)["headline"] == "Final | Tie"
+    assert football_display(tied)["outcome"] == ""
+
+
+def test_schedule_provenance_and_text_are_safe(matchups):
+    schedule = team_schedule(matchups, "BUF")
+    markup = schedule_html(schedule)
+    assert 'gl-final' in markup and 'gl-upcoming' in markup
+    assert 'Recorded' in markup and 'Retrospective' in markup and 'Provisional' in markup
+    assert 'Generated' in markup and 'Forecast unavailable' in markup
+    assert 'W 21-7' in markup and 'L 7-14' in markup
+    malicious = {**matchups[0], "status_label": '<script>alert("x")</script>'}
+    assert "<script>" not in matchup_html(malicious)
+    assert "&lt;script&gt;" in matchup_html(malicious)
+
+
+def test_compact_landing_navigation_and_staleness(games, store):
+    from streamlit.testing.v1 import AppTest
+    from src import data
+    games.to_csv(store / "games.csv", index=False)
+    data.write_json(store / "source.json", {"fetched_at": "2026-01-01T00:00:00Z"})
+    app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "dashboard/app.py"), default_timeout=30).run()
+    assert not app.exception and app.radio(key="view").value == "Weekly forecasts"
+    assert "Weekly predictions" in app.radio(key="view").options
+    assert not app.title  # The marketing headline no longer displaces matchups.
+    assert any("Stale source" in m.value for m in app.markdown)
+    advanced = next(e for e in app.expander if e.label == "Advanced filters")
+    assert not advanced.proto.expanded
+    assert len(advanced.multiselect) == 2 and len(advanced.selectbox) == 3
+    grid = next(g for g in app.get("grid") if g.proto.min_column_width_px == 380)
+    assert grid.proto.columns == 2 and grid.proto.wrap
+    assert not any(e.label == "Advanced forecast details" for e in app.expander)
+    assert any(p.proto.popover.type == "tertiary" for p in app.get("popover"))
+    app.selectbox(key="week").select(1).run()
+    assert app.button(key="previous_week").disabled
+    app.button(key="next_week").click().run()
+    assert app.selectbox(key="week").value == 2
+    app.selectbox(key="week").select(18).run()
+    assert app.button(key="next_week").disabled

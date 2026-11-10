@@ -17,7 +17,8 @@ from src.season import coverage, score_records, weekly_performance
 from src.provisional import forecast
 from src.presentation import (kickoff_label, default_week as choose_week, data_status,
                               LABELS, STATUSES, matchup_rows, filter_matchups, team_schedule,
-                              team_record, remaining_wins_estimate)
+                              team_record, remaining_wins_estimate, adjacent_week, football_display,
+                              matchup_html, schedule_html)
 
 st.set_page_config(page_title="Gridiron Lab | 2026 NFL", page_icon=":material/sports_football:", layout="wide")
 
@@ -44,9 +45,10 @@ def reconstructed_results(games, store_path, retro_modified, archive_modified):
     return retrospective_results(games)
 
 
-st.caption(":green[GRIDIRON LAB / NFL ANALYTICS]")
-st.title("Every matchup. A transparent edge.")
-st.caption("2026 REGULAR SEASON | V1.2.1 | Probabilities with provenance")
+st.html(Path(__file__).with_name("style.css"))
+header = st.container(horizontal=True, vertical_alignment="center", gap="small")
+header.markdown("### Gridiron Lab", width="content")
+header.caption("2026 NFL", width="content")
 try:
     schedule_path = STORE / "games.csv"
     metadata_path = STORE / "source.json"
@@ -58,26 +60,29 @@ except (OSError, ValueError, KeyError) as exc:
     st.stop()
 
 meta = read("model.json", {})
-if source.get("stale"):
-    st.warning(f"STALE SOURCE SNAPSHOT · {source.get('error') or 'Last successful fetch was over 24 hours ago.'}")
-st.caption("Local regular-season snapshot | Recorded forecasts, retrospective backtests and provisional estimates stay separate")
-with st.expander("Advanced: source and model details"):
-    st.write("Latest successful fetch", source.get("fetched_at", "unknown"))
-    st.write("Recorded forecast model", meta.get("version", "not trained"))
-    st.json(source)
 season_games = games.loc[games.season.eq(2026)]
 if len(season_games) != 272:
     st.warning(f"Incomplete schedule snapshot: {len(season_games)} of 272 expected regular-season games. Missing schedule rows are separate from missing forecasts.")
 if season_games.empty:
     st.warning("The source snapshot contains no 2026 games. Refresh when the schedule is available; no games have been invented.")
 default_week = choose_week(season_games, now())
-week = st.sidebar.selectbox("Regular season week", [*range(1, 19), "All weeks"], index=default_week - 1, key="week")
-st.sidebar.caption("Kickoffs shown in Eastern Time. Byes have no scheduled game. Predictions are binary; ties are excluded from accuracy.")
-st.sidebar.title("Gridiron Lab")
-view = st.sidebar.radio("Explore", ["Weekly forecasts", "Team Explorer", "Season performance", "Prediction history", "Methodology"], key="view")
+if "week" not in st.session_state:
+    st.session_state["week"] = default_week
+st.sidebar.subheader("Gridiron Lab")
+week = st.sidebar.selectbox("Regular season week", [*range(1, 19), "All weeks"], index=None, required=True, key="week")
+view = st.sidebar.radio("Explore", ["Weekly forecasts", "Team Explorer", "Season performance", "Prediction history", "Methodology"], format_func=lambda name: "Weekly predictions" if name == "Weekly forecasts" else name, key="view")
 status = data_status(source, season_games, now())
-selection_label = "All weeks" if week == "All weeks" else f"Week {week}"
-st.caption(f"{selection_label} | {'STALE SNAPSHOT' if status['stale'] else 'SOURCE CURRENT'} | Last successful refresh: {status['refresh']} | {status['pending']} results pending")
+header.badge("Stale source" if status["stale"] else "Source current",
+             color="orange" if status["stale"] else "green",
+             help=f"Last successful refresh: {status['refresh']}. {status['pending']} results pending. Local snapshot only.")
+with st.sidebar.expander("Data & forecast guide"):
+    st.caption(f"V1.2.2 | Last successful refresh: {status['refresh']} | {status['pending']} results pending")
+    if status["stale"]:
+        st.warning(f"STALE SOURCE SNAPSHOT: {source.get('error') or 'Last successful refresh was over 24 hours ago.'}")
+    st.write("Recorded picks were archived before kickoff. Retrospective backtests were reconstructed after games. Provisional forecasts are estimates excluded from official accuracy.")
+    st.caption("Kickoffs are Eastern Time. Byes have no game. Ties are excluded from prediction accuracy.")
+    st.write("Recorded forecast model", meta.get("version", "unavailable"))
+    st.json(source)
 
 @st.cache_data(ttl=300, max_entries=8)
 def provisional_batch(games, source, model_path, model_stamp):
@@ -117,35 +122,32 @@ team_options = sorted(NAMES, key=lambda t: NAMES[t])
 
 
 def matchup_card(row):
-    with st.container(border=True):
-        left, right = st.columns([3, 2])
-        left.write(f"**{display(row['away_team'])} at {display(row['home_team'])}**")
-        left.caption(f"{kickoff_label(row['kickoff'])} | {row['status_label']}")
-        if row["status"] == "completed" and pd.notna(row["home_score"]) and pd.notna(row["away_score"]):
-            left.write(f"Final: **{row['away_team']} {row['away_score']:g} - {row['home_team']} {row['home_score']:g}**")
-        record = row["forecast"]
-        kind = row["forecast_type"]
-        right.badge(row["provenance"], color={"live": "green", "retrospective_backtest": "violet", "provisional": "orange", "unavailable": "gray"}[kind])
-        if kind != "unavailable":
-            right.write(f"Favored: **{row['winner']} | {row['confidence']:.0%}**")
-            result = record.get("result", "pending")
-            if result in ("correct", "incorrect"):
-                label = "Backtest" if kind == "retrospective_backtest" else "Recorded pick"
-                color = "green" if result == "correct" else "red"
-                right.markdown(f":{color}[{label} {result}]")
-            elif result == "tie":
-                right.caption("Tie - excluded from accuracy")
-            if kind == "provisional":
-                right.caption(f"Estimate generated {kickoff_label(record['generated_at'])} | Excluded from accuracy")
-        else:
-            right.info(f"Unavailable: {row['reason']}")
-        with st.expander("Advanced forecast details"):
-            if kind == "retrospective_backtest":
-                st.write("Reconstructed after the game. This was not a recorded historical pregame pick.")
-            if record:
-                st.json({key: value for key, value in record.items() if key != "features"})
-            else:
-                st.write("No forecast artifact exists for this matchup.")
+    content = football_display(row)
+    kind = row["forecast_type"]
+    record = row["forecast"] or {}
+    with st.container(border=True, gap="xsmall", height="stretch", key=f"game_{row['game_id']}"):
+        st.html(matchup_html(row))
+        with st.container(horizontal=True, vertical_alignment="center", gap="xsmall"):
+            st.badge(content["provenance"], color={"live": "green", "retrospective_backtest": "violet", "provisional": "orange", "unavailable": "gray"}[kind], help=LABELS[kind])
+            if content["outcome"]:
+                color = "green" if record["result"] == "correct" else "red"
+                st.markdown(f":{color}[{content['outcome']}]")
+            with st.popover("Details", type="tertiary", key=f"details_{row['game_id']}"):
+                st.write(f"{display(row['away_team'])} at {display(row['home_team'])}")
+                if kind == "retrospective_backtest":
+                    st.info("Reconstructed after the game; not an archived pregame pick.")
+                if kind == "unavailable":
+                    st.info(f"Unavailable: {row['reason']}")
+                if record:
+                    st.json({key: value for key, value in record.items() if key != "features"})
+                else:
+                    st.write("No forecast artifact exists for this matchup.")
+        if kind == "provisional":
+            st.caption(f"Estimated {kickoff_label(record['generated_at'])} | Not scored")
+
+
+def change_week(direction):
+    st.session_state["week"] = adjacent_week(st.session_state["week"], direction)
 
 
 def clear_weekly_filters():
@@ -159,26 +161,34 @@ if view == "Weekly forecasts":
     week_filter = None if week == "All weeks" else week
     selected = filter_matchups(rows, week=week_filter)
     heading = "All weeks" if week_filter is None else f"Week {week}"
-    st.subheader(f"{heading} \u00b7 {len(selected)} games")
-    st.caption("Find a matchup, see the favorite, then check how the forecast was made. Retrospective backtests were generated after the games; provisional estimates are excluded from accuracy.")
-    query = st.text_input("Search team or matchup", placeholder="Buffalo, BUF, or MIA @ BUF", key="weekly_search")
-    a, b, c = st.columns(3)
-    team = a.selectbox("Team", [None, *team_options], format_func=lambda t: display(t) if t else "All teams", key="weekly_team")
-    statuses = b.multiselect("Game status", list(STATUSES), format_func=lambda value: STATUSES[value], key="weekly_status")
-    types = c.multiselect("Forecast type", list(LABELS), format_func=lambda value: LABELS[value], key="weekly_type")
-    a, b, c = st.columns(3)
-    winner = a.selectbox("Predicted winner", [None, *team_options], format_func=lambda t: display(t) if t else "Any winner", key="weekly_winner")
-    confidence = b.selectbox("Confidence", ["Any confidence", "At least 60%", "At least 70%", "At least 80%", "At least 90%"], key="weekly_confidence")
-    order = c.selectbox("Sort games", ["Kickoff", "Confidence: high to low", "Confidence: low to high", "Matchup A-Z"], key="weekly_sort")
-    st.button("Clear list filters", on_click=clear_weekly_filters, key="weekly_clear")
+    with st.container(horizontal=True, vertical_alignment="center", gap="small"):
+        st.subheader(f"{heading} \u00b7 {len(selected)} games")
+        with st.container(horizontal=True, width="content", wrap=False, gap="xsmall"):
+            st.button("Previous", icon=":material/chevron_left:", on_click=change_week, args=(-1,), disabled=week == 1, key="previous_week")
+            st.button("Next", icon=":material/chevron_right:", on_click=change_week, args=(1,), disabled=week == 18, key="next_week")
+    with st.grid(2, min_column_width=240, gap="small", key="weekly_search_controls"):
+        query = st.text_input("Search team or matchup", placeholder="Search: Buffalo, BUF or MIA @ BUF", key="weekly_search", label_visibility="collapsed")
+        team = st.selectbox("Team", [None, *team_options], format_func=lambda t: display(t) if t else "All teams", key="weekly_team", label_visibility="collapsed")
+    with st.expander("Advanced filters"):
+        a, b = st.columns(2)
+        statuses = a.multiselect("Game status", list(STATUSES), format_func=lambda value: STATUSES[value], key="weekly_status")
+        types = b.multiselect("Forecast type", list(LABELS), format_func=lambda value: LABELS[value], key="weekly_type")
+        a, b, c = st.columns(3)
+        winner = a.selectbox("Predicted winner", [None, *team_options], format_func=lambda t: display(t) if t else "Any winner", key="weekly_winner")
+        confidence = b.selectbox("Confidence", ["Any confidence", "At least 60%", "At least 70%", "At least 80%", "At least 90%"], key="weekly_confidence")
+        order = c.selectbox("Sort games", ["Kickoff", "Confidence: high to low", "Confidence: low to high", "Matchup A-Z"], key="weekly_sort")
+        st.caption("Confidence is the favored team's probability. Games without forecasts have no confidence.")
     threshold = None if confidence == "Any confidence" else (int(confidence.split()[2].rstrip("%"))/100, 1.0)
     visible = filter_matchups(rows, week=week_filter, team=team, query=query, statuses=statuses,
                               forecast_types=types, winner=winner, confidence=threshold, sort=order)
-    st.caption(f"Showing {len(visible)} of {len(selected)} games | Confidence means the favored team's win probability. Unavailable forecasts have no confidence.")
+    with st.container(horizontal=True, vertical_alignment="center"):
+        st.caption(f"Showing {len(visible)} of {len(selected)} games", width="stretch")
+        st.button("Clear filters", on_click=clear_weekly_filters, key="weekly_clear", type="tertiary")
     if not visible:
-        st.info("No games match these filters. Clear search or widen the team, status, forecast, winner or confidence filters; try All weeks for the full schedule.")
-    for row in visible:
-        matchup_card(row)
+        st.info("No games match. Clear filters, choose another team or week, or try All weeks.")
+    with st.grid(2, min_column_width=380, gap="small", key="weekly_grid"):
+        for row in visible:
+            matchup_card(row)
     with st.expander("Advanced: schedule and forecast coverage"):
         st.dataframe(coverage_table if week_filter is None else coverage_table.loc[coverage_table.week.eq(week_filter)], hide_index=True, alt="Schedule and prediction coverage")
 
@@ -187,38 +197,36 @@ if view == "Team Explorer":
     team = st.selectbox("Choose a team", team_options, format_func=display, key="explorer_team")
     schedule = team_schedule(rows, team)
     actual = team_record(schedule)
-    st.write(f"**{NAMES[team]} | {actual['wins']}-{actual['losses']}-{actual['ties']} W-L-T**")
-    st.caption(f"Actual record from completed scores in this snapshot. {len(schedule)} of 17 regular-season matchups available. Scores below are from the selected team's perspective. The weekly filter does not limit this schedule.")
+    played = sum(actual.values())
+    remaining = sum(row["actual_result"] is None and row["status"] != "canceled" for row in schedule)
+    with st.container(horizontal=True):
+        st.metric("Actual W-L-T", f"{actual['wins']}-{actual['losses']}-{actual['ties']}", border=True, help="Completed scores in the local snapshot; independent of forecasts.")
+        st.metric("Played", played, border=True)
+        st.metric("Remaining", remaining, border=True)
     if len(schedule) != 17:
         st.warning("Incomplete team schedule in the local snapshot. Missing matchups are not invented.")
-    if st.checkbox("Show estimated remaining wins", key="explorer_estimate"):
-        estimate = remaining_wins_estimate(schedule, team)
-        if len(schedule) == 17 and estimate["remaining"] == 0:
-            st.info("No remaining matchups to estimate. The actual record is shown above.")
-        elif len(schedule) == 17 and estimate["estimated_wins"] is not None:
-            st.metric("Estimated remaining wins", f"{estimate['estimated_wins']:.1f}")
-            st.caption(f"Estimate only: sum of win probabilities across {estimate['covered']} remaining matchups, using available recorded and provisional forecasts. Not an actual record or an official accuracy metric. No intervening games are simulated.")
-        else:
-            st.info(f"Estimate unavailable: {estimate['covered']} of {estimate['remaining']} uncompleted matchups have eligible forecasts. A complete 17-game schedule and forecasts for every remaining matchup are required; missing probabilities are never filled in.")
-    table = []
-    for row in schedule:
-        probability = f"{row['confidence']:.0%}" if row["confidence"] is not None else "Unavailable"
-        record = row["forecast"] or {}
-        table.append({"Week": row["week"], "Opponent": display(row["opponent"]), "Venue": row["venue"],
-                      "Kickoff (ET)": kickoff_label(row["kickoff"]), "Status": row["status_label"],
-                      "Actual result": f"{row['actual_result']} {row['score']}" if row["actual_result"] else "Not final",
-                      "Favored team": row["winner"] or "Unavailable", "Favored win probability": probability,
-                      "Forecast provenance": row["provenance"],
-                      "Estimate generated (ET)": kickoff_label(record.get("generated_at")) if row["forecast_type"] == "provisional" else None})
-    st.dataframe(pd.DataFrame(table), hide_index=True, width="stretch", alt=f"Complete local regular-season schedule and forecast provenance for {NAMES[team]}")
-    st.caption("Retrospective backtests were reconstructed after the game and are never historical pregame picks. Provisional forecasts are estimates excluded from official accuracy. Missing forecasts do not remove games from the schedule.")
-    with st.expander("Advanced: unavailable forecasts and provenance"):
-        for row in schedule:
-            st.write(f"Week {row['week']}: {row['provenance']}")
-            if row["forecast_type"] == "unavailable":
-                st.caption(row["reason"])
-            if row["forecast"]:
-                st.json({key: value for key, value in row["forecast"].items() if key != "features"})
+    with st.popover("Model estimate", type="tertiary"):
+        if st.checkbox("Show estimated remaining wins", key="explorer_estimate"):
+            estimate = remaining_wins_estimate(schedule, team)
+            if len(schedule) == 17 and estimate["remaining"] == 0:
+                st.info("No remaining matchups to estimate.")
+            elif len(schedule) == 17 and estimate["estimated_wins"] is not None:
+                st.metric("Estimated remaining wins", f"{estimate['estimated_wins']:.1f}")
+                st.caption(f"Model estimate only: sum of probabilities for {estimate['covered']} remaining games. Not an actual record or an accuracy metric.")
+            else:
+                st.info(f"Estimate unavailable: {estimate['covered']} of {estimate['remaining']} uncompleted matchups have eligible forecasts. A full 17-game schedule and every remaining probability are required.")
+    st.caption(f"{len(schedule)} regular-season matchups | Scores from {team}'s perspective | Eastern Time")
+    st.html(schedule_html(schedule))
+    with st.popover("Forecast guide & details", type="tertiary"):
+        st.write("Recorded = archived pregame pick. Retrospective = reconstructed after the game. Provisional = model estimate, excluded from official accuracy.")
+        if schedule:
+            detail_id = st.selectbox("Game details", [row["game_id"] for row in schedule],
+                                     format_func=lambda gid: next(f"Week {r['week']}: {r['opponent']}" for r in schedule if r['game_id'] == gid), key="explorer_details")
+            detail = next(row for row in schedule if row["game_id"] == detail_id)
+            if detail["forecast_type"] == "unavailable":
+                st.info(detail["reason"])
+            if detail["forecast"]:
+                st.json({key: value for key, value in detail["forecast"].items() if key != "features"})
 
 if view == "Season performance":
     st.subheader("2026 season performance · separate cohorts")
@@ -227,9 +235,16 @@ if view == "Season performance":
         summary = score_records(cohort)
         with st.container(horizontal=True):
             st.metric("Accuracy", f"{summary['accuracy']:.1%}" if summary["accuracy"] is not None else "Awaiting results", border=True)
-            st.metric("Correct / incorrect", f"{summary['correct']} / {summary['incorrect']}", border=True)
-            st.metric("Scored games", summary["games"], border=True)
-        with st.expander(f"Advanced performance analysis | {title}"):
+            st.metric("Correct predictions", summary["correct"], border=True)
+            st.metric("Total evaluated", summary["games"], border=True)
+        weekly_metrics = pd.DataFrame(weekly_performance(cohort)).set_index("week")
+        if summary["games"]:
+            st.caption("Weekly results")
+            evaluated = weekly_metrics.loc[weekly_metrics.games.gt(0), ["correct", "incorrect"]].rename(columns={"correct": "Correct", "incorrect": "Incorrect"})
+            st.bar_chart(evaluated, color=["#50d890", "#ffabab"], height=180, x_label="Week", y_label="Evaluated predictions", alt=f"{title}: correct and incorrect predictions by week")
+        else:
+            st.info("No eligible evaluated predictions in this cohort yet.")
+        with st.expander(f"Technical metrics & model evaluation | {title}"):
             st.caption(f"Brier: {summary['brier'] if summary['brier'] is not None else 'unavailable'} · "
                        f"Log loss: {summary['log_loss'] if summary['log_loss'] is not None else 'unavailable'} · "
                        f"Ties excluded: {summary['ties']} · Unavailable: {summary['unavailable']}")
