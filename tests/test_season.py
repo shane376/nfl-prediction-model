@@ -207,6 +207,7 @@ def test_all_18_dashboard_weeks_and_cohorts_are_read_only(games, store):
         app.sidebar.selectbox[0].select(week).run(timeout=60)
         assert not app.exception, (week, app.exception)
         assert any(header.value.startswith(f"Week {week} ·") for header in app.subheader)
+    app.sidebar.radio[0].set_value("Prediction history").run(timeout=60)
     app.selectbox[0].select("Retrospective backtests").run(timeout=60)
     assert not app.exception
     after = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in store.rglob("*") if p.is_file()}

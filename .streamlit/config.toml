@@ -5,6 +5,23 @@ backgroundColor = "#0b1118"
 secondaryBackgroundColor = "#151f2b"
 textColor = "#ecf3f9"
 font = "sans serif"
+headingFont = "sans serif"
+headingFontWeights = [750, 650, 600, 600, 600, 600]
+borderColor = "#283747"
+baseRadius = "0.6rem"
+showWidgetBorder = true
+showSidebarBorder = true
+paddingTop = "0.5rem"
+paddingBottom = "1rem"
+baseFontSize = 15
+metricValueFontSize = "1.75rem"
+chartCategoricalColors = ["#50d890", "#8ca4bc", "#c8abef", "#f2c078"]
+
+[theme.sidebar]
+backgroundColor = "#101923"
+secondaryBackgroundColor = "#1a2836"
+textColor = "#ecf3f9"
+paddingTop = "1.5rem"
 
 [server]
 headless = true

@@ -9,6 +9,7 @@ from src.teams import NAMES
 
 
 def score_records(rows):
+    rows = [r for r in rows if r.get("kind") != "provisional"]
     scored = [r for r in rows if r.get("target") is not None and not r.get("integrity_error")]
     result = metrics([r["target"] for r in scored], [r["home_probability"] for r in scored])
     result.update(records=len(rows), correct=sum(r["result"] == "correct" for r in scored),
