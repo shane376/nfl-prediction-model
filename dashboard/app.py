@@ -1,8 +1,11 @@
 """Read-only dashboard: training and recording happen through the CLI."""
 import json
+import joblib
 from pathlib import Path
 import sys
+from typing import cast
 import pandas as pd
+import altair as alt
 import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -11,8 +14,10 @@ from src.predictions import records, reconciliation
 from src.teams import display
 from src.retrospective import retrospective_results
 from src.season import coverage, score_records, weekly_performance
+from src.provisional import forecast
+from src.presentation import kickoff_label, default_week as choose_week, prediction_label, data_status
 
-st.set_page_config(page_title="NFL • 2026 Forecast", page_icon="🏈", layout="wide")
+st.set_page_config(page_title="Gridiron Lab | 2026 NFL", page_icon=":material/sports_football:", layout="wide")
 
 
 def read(name, default):
@@ -37,9 +42,9 @@ def reconstructed_results(games, store_path, retro_modified, archive_modified):
     return retrospective_results(games)
 
 
-st.caption("GRIDIRON LAB / V1 INTELLIGENCE")
-st.title("2026 NFL Forecast")
-st.write("Weekly matchups. Transparent probabilities. A record of every pick.")
+st.caption(":green[GRIDIRON LAB / NFL ANALYTICS]")
+st.title("Every matchup. A transparent edge.")
+st.caption("2026 REGULAR SEASON | V1.2 | Probabilities with provenance")
 try:
     schedule_path = STORE / "games.csv"
     metadata_path = STORE / "source.json"
@@ -63,15 +68,31 @@ if len(season_games) != 272:
     st.warning(f"Incomplete schedule snapshot: {len(season_games)} of 272 expected regular-season games. Missing schedule rows are separate from missing forecasts.")
 if season_games.empty:
     st.warning("The source snapshot contains no 2026 games. Refresh when the schedule is available; no games have been invented.")
-upcoming = season_games.loc[season_games.kickoff >= now()]
-default_week = int(upcoming.iloc[0].week) if len(upcoming) else 18
+default_week = choose_week(season_games, now())
 week = st.sidebar.selectbox("Regular season week", range(1, 19), index=default_week - 1, key="week")
 st.sidebar.caption("Kickoffs shown in Eastern Time. Byes have no scheduled game. Predictions are binary; ties are excluded from accuracy.")
-weekly, performance, history, info = st.tabs(["Weekly predictions", "Performance", "Prediction history", "Model information"])
+st.sidebar.title("Gridiron Lab")
+view = st.sidebar.radio("Explore", ["Weekly forecasts", "Season performance", "Prediction history", "Methodology"], key="view")
+status = data_status(source, season_games, now())
+st.caption(f"Week {week} | {'STALE SNAPSHOT' if status['stale'] else 'SOURCE CURRENT'} | Last successful refresh: {status['refresh']} | {status['pending']} results pending")
+
+@st.cache_data(ttl=300, max_entries=8)
+def provisional_batch(games, source, model_path, model_stamp):
+    try:
+        bundle = joblib.load(model_path) if model_stamp else None
+    except (OSError, ValueError, ImportError, EOFError):
+        bundle = None
+    generated = now()
+    return {g.game_id: forecast(games, g, source, bundle, generated)
+            for _, g in games.loc[games.season.eq(2026) & games.status.isin(["scheduled", "kickoff_unavailable"])].iterrows()}
+
+model_path = STORE / "model.joblib"
+provisional = provisional_batch(games, source, str(model_path), model_path.stat().st_mtime_ns if model_path.exists() else 0) if view == "Weekly forecasts" else {}
 try:
     saved = records()
     # Recompute in memory from the latest snapshot; page loads never write files.
     results, live = reconciliation(games)
+    results = [row for row in results if row.get("season") == 2026]
 except (OSError, ValueError) as exc:
     st.warning(f"Prediction history unavailable: {exc}")
     saved, results, live = [], [], {}
@@ -86,7 +107,7 @@ first = {row["game_id"]: row for row in results}
 historical = {row["game_id"]: row for row in retro_results}
 coverage_table = pd.DataFrame(coverage(games, results, retro_results))
 
-with weekly:
+if view == "Weekly forecasts":
     selected = season_games.loc[season_games.week.eq(week)]
     st.subheader(f"Week {week} · {len(selected)} games")
     counts = coverage_table.loc[coverage_table.week.eq(week)].iloc[0]
@@ -96,28 +117,46 @@ with weekly:
                f"{int(counts.games_missing_required_data)} games missing required data")
     if selected.empty:
         st.info("No games in this source snapshot for the selected week.")
-    for _, game in selected.iterrows():
+    with st.container(horizontal=True):
+        st.metric("Matchups", len(selected), border=True)
+        st.metric("Recorded picks", int(counts.authentic_predictions), border=True)
+        st.metric("Backtests", int(counts.retrospective_predictions), border=True)
+    st.caption("GREEN: Recorded pregame / PURPLE: Retrospective / AMBER: Provisional (excluded from performance)")
+    for _, game in selected.sort_values("kickoff", na_position="last").iterrows():
         with st.container(border=True):
             left, right = st.columns([3, 2])
-            left.write(f"**{game.away_team} @ {game.home_team}**")
-            kickoff = game.kickoff.tz_convert("America/New_York").strftime("%a, %b %d · %I:%M %p %Z") if pd.notna(game.kickoff) else "Kickoff TBD"
+            left.caption("AWAY / HOME")
+            left.subheader(f"{game.away_team} at {game.home_team}")
+            left.caption(f"{display(game.away_team)} at {display(game.home_team)}")
+            kickoff = kickoff_label(game.kickoff)
             status_label = {"completed": "Final", "scheduled": "Upcoming", "kickoff_unavailable": "Kickoff TBD",
                             "underway_or_unavailable": "Underway / result pending", "result_unavailable": "Incomplete score",
                             "postponed": "Postponed", "canceled": "Canceled", "suspended": "Suspended"}.get(game.status, game.status)
             score = f" · {game.away_score:g}–{game.home_score:g}" if game.status == "completed" else ""
             left.caption(f"{kickoff} · {status_label}{score}")
-            record = first.get(game.game_id) or historical.get(game.game_id)
-            if record and not record.get("integrity_error"):
-                p = record["home_probability"]
-                label = "Retrospective backtest" if record["kind"] == "retrospective_backtest" else "Recorded pregame pick"
-                outcome = f" · {record['result']}" if record.get("result") != "pending" else ""
-                right.write(f"{label}: **{record['predicted_winner']}**{outcome}")
+            record = first.get(game.game_id) or historical.get(game.game_id) or provisional.get(game.game_id)
+            # Cache hits retain their true generation time, but never reopen a window.
+            if record and record.get("kind") == "provisional":
+                current = now()
+                if status["stale"] or (pd.notna(game.kickoff) and game.kickoff <= current + pd.Timedelta(seconds=30)):
+                    record = {"kind": "unavailable", "reason": "Source became stale or the pregame window closed. Await a recorded pick or eligible backtest."}
+            if record and not record.get("integrity_error") and "home_probability" in record:
+                p = float(record["home_probability"])
+                label = prediction_label(record)
+                right.badge(label, color={"live": "green", "retrospective_backtest": "violet", "provisional": "orange"}[record["kind"]])
+                right.write(f"Predicted winner: **{record['predicted_winner']}**")
+                result = record.get("result", "pending")
+                outcome_label = {"correct": "Correct pick", "incorrect": "Incorrect pick", "pending": "Awaiting result", "tie": "Tie - excluded"}.get(result, result)
+                outcome_color = {"correct": "green", "incorrect": "red"}.get(result, "gray")
+                right.markdown(f":{outcome_color}[{outcome_label}]")
+                if record["kind"] == "provisional":
+                    right.caption(f"Generated {record['generated_at']} | Not recorded | Excluded from official metrics")
                 right.progress(p, text=f"{game.home_team} {p:.1%} · {game.away_team} {1-p:.1%}")
                 if record.get("source_stale"):
                     right.warning("Pick generated from a stale snapshot")
             else:
-                right.info(f"Unavailable · {record['integrity_error'] if record else 'no recorded pregame prediction'}")
-            if record and not record.get("integrity_error") and pd.notna(game.kickoff) and game.kickoff != pd.Timestamp(record.get("kickoff")):
+                right.info(f"Unavailable · {(record.get('integrity_error') or record.get('reason', 'no eligible prediction')) if record else 'No eligible pregame record or historical backtest. Completed games are never forecast now.'}")
+            if record and record.get("kind") == "live" and not record.get("integrity_error") and pd.notna(game.kickoff) and game.kickoff != pd.Timestamp(record.get("kickoff")):
                 left.caption("Kickoff changed since this pick was recorded. The original record is retained.")
             with st.expander(f"Matchup details · {game.game_id}"):
                 st.caption(f"{display(game.away_team)} at {display(game.home_team)}")
@@ -126,7 +165,7 @@ with weekly:
                 else:
                     st.write("No recorded forecast or eligible retrospective backtest. Future games are listed even without predictions.")
 
-with performance:
+if view == "Season performance":
     st.subheader("2026 season performance · separate cohorts")
     for title, cohort in (("Recorded pregame forecasts", results), ("Retrospective backtests · frozen pre-2026 model", retro_results)):
         st.write(f"**{title}**")
@@ -141,8 +180,21 @@ with performance:
                    f"Ties excluded: {summary['ties']} · Unavailable: {summary['unavailable']}")
         weekly_metrics = pd.DataFrame(weekly_performance(cohort)).set_index("week")
         if summary["games"]:
-            st.line_chart(weekly_metrics[["accuracy", "cumulative_accuracy", "home_baseline_accuracy"]],
-                          alt=f"{title}: weekly and cumulative accuracy against the home baseline")
+            last_scored = weekly_metrics.loc[weekly_metrics.games.gt(0)].index.max()
+            chart_data = weekly_metrics.loc[:last_scored].copy()
+            chart_data["cumulative_home"] = (chart_data.home_baseline_accuracy.fillna(0) * chart_data.games).cumsum() / chart_data.cumulative_games.replace(0, float("nan"))
+            for chart_title, columns in (("Cumulative accuracy", {"cumulative_accuracy": "Model", "cumulative_home": "Always home"}),
+                                         ("Weekly accuracy", {"accuracy": "Model", "home_baseline_accuracy": "Always home"})):
+                st.caption(chart_title)
+                plot = chart_data[list(columns)].rename(columns=columns).reset_index().melt("week", var_name="Series", value_name="Accuracy").dropna()
+                chart = cast(alt.Chart, alt.Chart(plot).mark_line(point=True)).encode(
+                    x=alt.X("week:O", title="Regular season week"),
+                    y=alt.Y("Accuracy:Q", axis=alt.Axis(format=".0%"), scale=alt.Scale(domain=[0, 1])),
+                    color=alt.Color("Series:N", scale=alt.Scale(domain=["Model", "Always home"], range=["#50d890", "#8ca4bc"])),
+                    tooltip=["week:O", "Series:N", alt.Tooltip("Accuracy:Q", format=".1%")]).properties(height=230)
+                st.altair_chart(chart, width="stretch", alt=f"{title}: {chart_title.lower()} against the home-team baseline")
+        else:
+            st.info("No eligible scored games in this cohort yet. Accuracy appears after a valid prediction has a non-tied, eligible final result.")
         valid = [r["home_probability"] for r in cohort if not r.get("integrity_error")]
         if valid:
             distribution = pd.Series(pd.cut(valid, bins=[i / 10 for i in range(11)], include_lowest=True)).value_counts(sort=False)
@@ -162,7 +214,7 @@ with performance:
             if calibration:
                 st.dataframe(pd.DataFrame(calibration), hide_index=True, alt="2025 holdout calibration bins")
 
-with history:
+if view == "Prediction history":
     cohort_name = st.selectbox("Prediction type", ["Recorded pregame forecasts", "Retrospective backtests"])
     history_rows = retro_results if cohort_name == "Retrospective backtests" else results
     query = st.text_input("Search team or matchup").upper()
@@ -174,12 +226,16 @@ with history:
             continue
         indicator = {"correct": "✓", "incorrect": "✕", "pending": "◷", "tie": "=", "unavailable": "—"}[row["result"]]
         table.append({"Week": row.get("week"), "Matchup": matchup, "Prediction": row.get("predicted_winner"), "Actual": row["actual"], "Result": f"{indicator} {row['result']}", "Type": row["kind"], "Generated": row.get("generated_at"), "Historical cutoff": row.get("feature_cutoff"), "Integrity": row.get("integrity_error")})
-    st.dataframe(pd.DataFrame(table), width="stretch", hide_index=True)
+    if not table:
+        st.info("No predictions match these filters. Recorded picks appear only after the pipeline archives an eligible pregame forecast.")
+    else:
+        st.dataframe(pd.DataFrame(table), width="stretch", hide_index=True)
     st.caption("First recorded pregame pick per game is scored. All revisions are retained below.")
     with st.expander("Versioned prediction records"):
         st.dataframe(pd.DataFrame(saved), width="stretch")
 
-with info:
+if view == "Methodology":
+    st.info("Provisional forecasts use the saved production model and only observed season-to-date results available in the source snapshot. Intervening future games are not simulated. Estimates are cached in memory for up to five minutes, carry their actual generation time, and never enter recorded history or official metrics. TBD kickoff estimates require a published future game date. Stale sources fail closed.")
     st.subheader("Standardized logistic regression · V1 A–D")
     st.write(meta.get("policy", "Model not yet trained."))
     st.write("Features", meta.get("features", []))
