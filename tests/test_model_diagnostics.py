@@ -55,3 +55,15 @@ def test_full_research_replay_preserves_artifacts_and_exports_matched_scores(tmp
     assert table.games.eq(len(predictions)).all()
     actual = score(predictions.target, predictions.selected_probability)
     np.testing.assert_allclose(table.iloc[1].log_loss, actual["log_loss"], atol=1e-12)
+    # Verify the report's evidence tables still match a fresh, isolated replay.
+    # Environment metadata can differ; do not rewrite the checked-in manifest.
+    for filename in (
+        "population_metrics.csv", "variant_reproduction.csv", "reliability.csv",
+        "candidate_validation.csv", "selected_holdout.csv", "subgroups.csv",
+        "validation_window_sensitivity.csv",
+    ):
+        pd.testing.assert_frame_equal(
+            pd.read_csv(tmp_path / filename),
+            pd.read_csv(diagnostics.ROOT / "docs/research_v1_3" / filename),
+            check_exact=False, rtol=1e-12, atol=1e-12,
+        )

@@ -7,6 +7,13 @@ production replacement: the validation winner, Elo, improves 2025 accuracy but
 slightly worsens Brier score and log loss. Keep production unchanged and prioritize
 data provenance, early-season shrinkage research, and additional forward evaluation.
 
+Final review (November 10, 2026): an isolated replay matches all seven checked-in
+metric, calibration, subgroup and candidate-comparison tables to 1e-12 tolerance.
+The three populations and recommendations above remain unchanged. The bounded
+extension corrects the validation-window wording and clarifies Elo's net accuracy
+gain; it does not add experiments or refresh data. The next research proposal and
+its explicit promotion gates are in [V2 feature feasibility](v2_feature_feasibility.md).
+
 This report uses the **committed snapshot fetched November 10, 2026 at 07:55:36
 Eastern (12:55:36 UTC)**. It makes no claim about later results. All inputs remain
 unchanged; research outputs live under `docs/research_v1_3/`.
@@ -244,8 +251,10 @@ noncalibrated configuration on early and full 2024 without changing selection.
 Elo remains strongest on full-2024 log loss (.62475 versus A .66074), but its early
 2024 accuracy is only 59.42%. Recent-history fitting improves late-2024 loss yet
 worsens full-year loss (.66797); this is a strong warning against optimizing a
-single favorable season segment. Early/full windows overlap the selection window
-and are sensitivity checks, not independent confirmation. Calibrated candidates
+single favorable season segment. The full-year window overlaps selection;
+the early window does not, but was inspected during this research rather than
+reserved for final confirmation. Both are sensitivity checks, not fresh
+confirmation. Calibrated candidates
 are excluded because their early-2024 labels were consumed for calibration.
 
 Only the selected Elo candidate receives a new 2025 holdout experiment, alongside
@@ -256,7 +265,7 @@ the fixed A reference; the published A–D reproduction is not new tuning.
 | Fixed V1 A | 61.25% | .226805 | .644337 |
 | Selected Elo | 64.21% | .227689 | .649154 |
 
-Elo wins eight additional classifications, but loses on both proper scores.
+Elo makes eight more correct classifications on net, but loses on both proper scores.
 Its paired log-loss difference is **+.00482** (95% week-block bootstrap interval
 −.03531 to +.04469; negative favors Elo). Its late-2024 difference was −.04617,
 with interval −.08574 to +.01152. Neither establishes a stable log-loss advantage.
