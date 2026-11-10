@@ -37,6 +37,56 @@ versions, cohort inventory, and selection policy. No network access is needed fo
 the diagnostic run. Exact probability comparisons use tolerance 1e-12 and fail on
 unreproducible historical outputs.
 
+### Frozen fingerprint portability investigation
+
+The Ubuntu run of [PR #4 CI](https://github.com/shane376/nfl-prediction-model/actions/runs/42879886213)
+failed the old `training_data_sha256` assertion. The cause was platform-dependent
+CSV serialization, not changed training data. `fit_frozen()` used pandas'
+default line terminator, which follows `os.linesep`. The committed artifact was
+created with Windows CRLF; Ubuntu rebuilt its fingerprint using LF.
+
+For the identical 815 ordered rows and columns (`game_id`, `target`,
+`win_pct_diff`, `point_diff_diff`), the fingerprints are:
+
+| CSV encoding (UTF-8, no index) | SHA-256 |
+|---|---|
+| Historical CRLF | `64572cfed7755fadd774664f60cbb1e8657144a7646e1201a36441c21b229f24` |
+| Unix LF | `6b967cda127624bec0c76d313caf8a4d874d3d2e8612bc89df013d518781c23e` |
+
+Investigation compared the current normalized input with `artifacts/games.csv`
+from commit `894eb1b`, which introduced the frozen artifact. Ordered training rows,
+targets, feature values, historical scores and kickoffs match. The local source
+file SHA-256 also matches the original research manifest:
+`75b3aa64cec30a117904a0bea72627cdac82b0144704d88808e64a4f0423e0dd`.
+Raw file hashes can differ across Git checkouts due to text line conversion;
+the strict ordered training-payload hash is the relevant model-input check.
+
+Repeated normalization is a separate ordering hazard: sorting again by kickoff
+can permute simultaneous games. In this investigation it preserved keyed feature
+values but changed row order. Replay therefore normalizes once, preserves the
+resulting historical order, and does not sort or round rows to force a match.
+
+The research-only `replay_frozen()` now explicitly serializes the historical
+UTF-8/CRLF format and requires **exact equality with the existing artifact's
+fingerprint**. It checks cutoff/season/feature provenance, row count and last
+eligible result, then compares an in-memory refit's probabilities with the
+committed model on every training row (absolute tolerance 1e-12, zero relative
+tolerance). Both models must also reproduce the scored retrospective archive;
+JSON and joblib metadata must agree. The production frozen-model writer and all
+model/prediction artifacts remain unchanged.
+
+A different current snapshot, altered features, reordered rows or changed model
+still fail verification; no alternate fingerprint, canonical row sort or fallback
+is accepted. Such inputs would require separately labeled current-snapshot
+reconstruction, not a claim of verified historical replay. Fresh runtime manifests
+include the verified fingerprint, format, row count and maximum model probability
+error; existing research evidence files are not rewritten by this fix.
+
+Regression tests simulate both LF and CRLF defaults, exercise the full committed
+replay under LF, and reject changed scores (even without changing the winner),
+row order, feature values and model coefficients. The original metric-table
+comparison and artifact immutability checks remain in force.
+
 ## Existing pipeline and populations
 
 `src/pregame.py` constructs identical training and inference season-to-date
@@ -330,7 +380,7 @@ All linked CSV files are under [research_v1_3](research_v1_3/):
 - `coefficients.csv`, `feature_distributions.csv`, `feature_correlations.csv`, `data_audit.csv`: feature and source audits.
 - `manifest.json`: provenance, cohort exclusions, hashes and environment.
 
-Verification: **77 tests passed** using the locked existing Python 3.12.7
+Verification: **83 tests passed** using the locked existing Python 3.12.7
 environment. Pytest emitted one Windows cache-permission warning; test execution
 and isolated temporary research exports completed successfully. The diagnostic
 CLI also completed with zero holdout reproduction error and unchanged artifact

@@ -22,10 +22,51 @@ from src.modeling import metrics
 from src.models.train_v1 import MODEL_FEATURES, build_model
 from src.pregame import training_rows
 from src.predictions import reconciliation
-from src.retrospective import retrospective_results, fit_frozen
+from src.retrospective import retrospective_results, TRAINING_CUTOFF
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs/research_v1_3"
+
+
+def replay_frozen(games, bundle):
+    """Verify the ordered historical inputs before refitting in memory.
+
+    The committed frozen artifact hashed pandas CSV on Windows: UTF-8, CRLF,
+    no index, and the original row/column order. pandas' default is os.linesep;
+    reproducing that *format* explicitly is essential on a Unix CI runner.
+    Do not sort, round, re-normalize, or accept a different data fingerprint.
+    """
+    meta = bundle["metadata"]
+    columns = MODEL_FEATURES["A"]
+    if (meta["training_seasons"] != [2023, 2024, 2025]
+            or pd.Timestamp(meta["training_cutoff"]) != TRAINING_CUTOFF
+            or meta["variant"] != "A" or meta["features"] != columns):
+        raise ValueError("Frozen model provenance does not match the pre-2026 policy")
+    prior = games.loc[games.season.isin(meta["training_seasons"])]
+    rows = training_rows(prior, TRAINING_CUTOFF)
+    table = rows[["game_id", "target"] + columns]
+    digest = hashlib.sha256(table.to_csv(index=False, lineterminator="\r\n").encode("utf-8")).hexdigest()
+    if digest != meta["training_data_sha256"]:
+        raise ValueError(
+            "Frozen training_data_sha256 mismatch using historical UTF-8/CRLF CSV: "
+            f"expected {meta['training_data_sha256']}, reproduced {digest}. "
+            "Review the source snapshot, row order, normalization and historical features; "
+            "current-snapshot reconstruction is not verified frozen-model replay."
+        )
+    if (len(rows) != meta["training_games"]
+            or rows.available_at.max() != pd.Timestamp(meta["last_training_result_available_at"])
+            or rows.available_at.max() >= TRAINING_CUTOFF):
+        raise ValueError("Frozen training row count or result-availability provenance changed")
+    model = build_model().fit(rows[columns], rows.target)
+    reproduced = model.predict_proba(rows[columns])[:, 1]
+    archived = bundle["model"].predict_proba(rows[columns])[:, 1]
+    if not np.allclose(reproduced, archived, atol=1e-12, rtol=0):
+        raise ValueError("Frozen model probabilities differ despite matching training inputs")
+    return model, dict(
+        status="verified", training_games=len(rows), training_data_sha256=digest,
+        serialization="pandas CSV; UTF-8; CRLF; index=False; original row and column order",
+        training_probability_max_error=float(np.max(np.abs(reproduced-archived))),
+    )
 
 
 def score(y, p):
@@ -138,12 +179,13 @@ def run():
         inventory.append(dict(population=name, records=len(df), scored=int(df.target.notna().sum()),
                               integrity_errors=int(df.integrity_error.notna().sum()), results=df.result.value_counts().to_dict()))
         populations[name] = df.loc[df.target.notna()].copy()
-    frozen = fit_frozen(games)
     checked = joblib.load(ROOT/"artifacts/retrospective/model.joblib")
-    assert frozen["metadata"]["training_data_sha256"] == checked["metadata"]["training_data_sha256"]
+    assert checked["metadata"] == json.loads((ROOT/"artifacts/retrospective/model.json").read_text())
+    frozen, frozen_verification = replay_frozen(games, checked)
     r = populations["retrospective_2026"]
     xr = rows.loc[r.game_id, MODEL_FEATURES["A"]]
-    assert np.allclose(frozen["model"].predict_proba(xr)[:, 1], r.home_probability, atol=1e-12, rtol=0)
+    for model in (frozen, checked["model"]):
+        assert np.allclose(model.predict_proba(xr)[:, 1], r.home_probability, atol=1e-12, rtol=0)
     summaries, groups, reliability = [], [], []
     pre2026 = rows.loc[rows.season.lt(2026)]
     production_cutoff = pd.Timestamp(json.loads((ROOT/"artifacts/model.json").read_text())["training_cutoff"])
@@ -266,6 +308,7 @@ def run():
                     selection="2023 fit; 2024 weeks 1-9 calibration only; 2024 weeks 10-18 matched validation; lowest log loss; 2025 selected-only holdout",
                     holdout_reproduction_max_error=float(np.max(np.abs(saved.loc[hold.index].home_probability-hold.home_probability))))
     manifest["script_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    manifest["frozen_verification"] = frozen_verification
     (OUT/"manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     assert all(hashlib.sha256((ROOT/p).read_bytes()).hexdigest() == digest for p,digest in hashes.items())
     print(pd.DataFrame(summaries).to_string(index=False))
