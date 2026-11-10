@@ -89,7 +89,7 @@ def test_dashboard_offline_read_only_all_views(monkeypatch):
     assert not app.exception
     app.selectbox(key='week').select(18).run()
     assert not app.exception
-    for view in ['Season performance', 'Prediction history', 'Methodology']:
+    for view in ['Team Explorer', 'Season performance', 'Prediction history', 'Methodology']:
         app.radio[0].set_value(view).run()
         assert not app.exception
     assert before == hashes()

@@ -348,7 +348,7 @@ def test_dashboard_all_states_are_read_only(games, store, state):
     before = {p.relative_to(store): p.read_bytes() for p in store.rglob("*") if p.is_file()}
     app = AppTest.from_file(Path(__file__).resolve().parents[1] / "dashboard/app.py").run(timeout=30)
     app.sidebar.selectbox[0].select(1).run()
-    assert not app.exception and len(app.sidebar.radio[0].options) == 4
+    assert not app.exception and len(app.sidebar.radio[0].options) == 5
     assert any("STALE" in warning.value for warning in app.warning)
     if state in ("unknown", "postponed", "missing"):
         assert any("Unavailable" in message.value for message in app.info)
