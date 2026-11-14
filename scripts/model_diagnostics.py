@@ -17,7 +17,7 @@ import sklearn
 from sklearn.isotonic import IsotonicRegression
 from sklearn.linear_model import LogisticRegression
 
-from src.data import normalize, STORE
+from src.data import normalize, STORE, utc_time
 from src.modeling import metrics
 from src.models.train_v1 import MODEL_FEATURES, build_model
 from src.pregame import training_rows
@@ -141,14 +141,15 @@ def paired(y, candidate, reference, weeks):
     return dict(log_loss_delta=float(delta.mean()), low=float(np.quantile(draws, .025)), high=float(np.quantile(draws, .975)))
 
 
-def run():
+def run(as_of=None):
+    """Replay at the source time, or an explicit historical report cutoff."""
     if STORE.resolve() != (ROOT/"artifacts").resolve():
         raise ValueError("Unset NFL_STORE: diagnostics require the committed snapshot")
     OUT.mkdir(parents=True, exist_ok=True)
     paths = sorted((ROOT/"artifacts").rglob("*"))
     hashes = {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths if p.is_file()}
     source = json.loads((ROOT/"artifacts/source.json").read_text())
-    asof = pd.Timestamp(source["fetched_at"])
+    asof = utc_time(source["fetched_at"] if as_of is None else as_of)
     games = normalize(pd.read_csv(ROOT/"artifacts/games.csv"))
     rows = training_rows(games, asof).set_index("game_id")
     fit, hold = rows.loc[rows.season.isin([2023, 2024])], rows.loc[rows.season.eq(2025)]

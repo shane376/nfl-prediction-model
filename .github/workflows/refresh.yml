@@ -30,6 +30,7 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Continue durable history, then integrate reviewed code
         run: |
+          cp scripts/integrate_refresh_branch.py "$RUNNER_TEMP/integrate_refresh_branch.py"
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
           if git show-ref --verify --quiet "refs/remotes/origin/$DATA_BRANCH"; then
@@ -39,7 +40,7 @@ jobs:
           fi
           HISTORY_BASE=$(git rev-parse HEAD)
           echo "HISTORY_BASE=$HISTORY_BASE" >> "$GITHUB_ENV"
-          git merge --no-edit "origin/$BASE_BRANCH"
+          python "$RUNNER_TEMP/integrate_refresh_branch.py" "origin/$BASE_BRANCH"
           python scripts/check_prediction_history.py "$HISTORY_BASE"
       - run: python -m pytest -q
       - run: python -m src.pipeline refresh
