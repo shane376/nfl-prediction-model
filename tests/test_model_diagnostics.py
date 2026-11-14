@@ -51,7 +51,22 @@ def test_full_research_replay_preserves_artifacts_and_exports_matched_scores(tmp
     monkeypatch.setattr(diagnostics, "OUT", tmp_path)
     # Exercise Unix CSV defaults even when the test is run on Windows.
     monkeypatch.setattr("os.linesep", "\n")
-    diagnostics.run()  # Includes exact historical replay and artifact SHA checks.
+    # The review branch keeps receiving results. Reproduce the published report
+    # at its own cutoff, rather than moving it with source.json's fetched_at.
+    import json
+    manifest = json.loads((diagnostics.ROOT / "docs/research_v1_3/manifest.json").read_text())
+    # Regress the scheduled-run failure even on main's original snapshot:
+    # advancing retrieval freshness must not advance a historical replay.
+    original_read = diagnostics.Path.read_text
+    def refreshed_source(path, *args, **kwargs):
+        text = original_read(path, *args, **kwargs)
+        if path == diagnostics.ROOT / "artifacts/source.json":
+            source = json.loads(text)
+            source["fetched_at"] = "2026-11-14T20:00:00Z"
+            return json.dumps(source)
+        return text
+    monkeypatch.setattr(diagnostics.Path, "read_text", refreshed_source)
+    diagnostics.run(as_of=manifest["as_of"])
     predictions = pd.read_csv(tmp_path / "selected_holdout_predictions.csv")
     table = pd.read_csv(tmp_path / "selected_holdout.csv")
     assert predictions.game_id.is_unique
