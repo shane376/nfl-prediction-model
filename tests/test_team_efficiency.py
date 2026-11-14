@@ -1,6 +1,12 @@
 """Research chronology, deterministic reconstruction, and production isolation."""
 import gzip
+import hashlib
 import json
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tempfile
 
 import numpy as np
 import pandas as pd
@@ -9,7 +15,7 @@ import pytest
 from src.research.schedule_data import RESEARCH, normalize, read
 from src.research.team_context import build_features, elo_probability, opening_ratings, rest_for
 from src.research.efficiency import aggregate_batches, pregame_efficiency, training_priors
-from scripts.v2_team_efficiency import evaluate_fold, hashes, run, split_fold
+from scripts.v2_team_efficiency import ROOT, evaluate_fold, hashes, manifest_identifier, run, split_fold
 
 
 @pytest.fixture
@@ -186,14 +192,71 @@ def test_schedule_rejects_invalid_inputs(problem):
         normalize(raw)
 
 
-def test_recorded_experiment_reproduces_and_preserves_artifacts(tmp_path):
-    from scripts.v2_team_efficiency import ROOT
+@pytest.fixture
+def external_research_directory():
+    # pytest's --basetemp may be inside the repo; use an actual external root.
+    with tempfile.TemporaryDirectory(prefix="gridiron external inputs ") as temporary:
+        directory = Path(temporary).resolve()
+        assert not directory.is_relative_to(ROOT.resolve())
+        for name in ("games.csv.gz", "source.json", "protocol.json"):
+            shutil.copy2(RESEARCH / name, directory / name)
+        yield directory
+
+
+def test_manifest_identifiers_are_canonical_and_unambiguous(external_research_directory, monkeypatch):
+    monkeypatch.chdir(ROOT)
+    assert manifest_identifier(RESEARCH / "protocol.json") == "research/v2_0_2/protocol.json"
+    assert manifest_identifier(Path("research/v2_0_2/protocol.json")) == "research/v2_0_2/protocol.json"
+    external = external_research_directory / "protocol.json"
+    assert manifest_identifier(external) == external.resolve().as_uri()
+    assert manifest_identifier(external.parent / "." / external.name) == manifest_identifier(external)
+    assert "%20" in manifest_identifier(external)
+    other = external.parent / "other" / external.name
+    other.parent.mkdir()
+    other.write_bytes(external.read_bytes())
+    assert manifest_identifier(other) != manifest_identifier(external)
+    assert manifest_identifier(other.parent / ".." / external.name) == manifest_identifier(external)
+
+
+def test_external_cli_rejects_changed_source_checksum(tmp_path, external_research_directory):
+    (external_research_directory / "games.csv.gz").write_bytes(gzip.compress(b"changed"))
+    completed = subprocess.run(
+        [sys.executable, "-m", "scripts.v2_team_efficiency", "--directory", str(external_research_directory),
+         "--output", str(tmp_path)], cwd=ROOT, capture_output=True, text=True, timeout=30,
+    )
+    assert completed.returncode != 0
+    assert "Research source checksum mismatch" in completed.stderr
+    assert not (tmp_path / "manifest.json").exists()
+
+
+@pytest.mark.parametrize("input_mode", ["default", "relative", "external"])
+def test_recorded_experiment_cli_reproduces_and_preserves_artifacts(tmp_path, external_research_directory, input_mode):
     before = hashes(ROOT / "artifacts")
-    manifest = run(output=tmp_path)
+    frozen = hashes(RESEARCH)
+    external_before = hashes(external_research_directory)
+    directory = external_research_directory if input_mode == "external" else RESEARCH
+    command = [sys.executable, "-m", "scripts.v2_team_efficiency", "--output", str(tmp_path)]
+    if input_mode != "default":
+        argument = directory if input_mode == "external" else directory.relative_to(ROOT)
+        command.extend(["--directory", str(argument)])
+    subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True, timeout=300)
+    manifest = json.loads((tmp_path / "manifest.json").read_text())
+    expected_files = [*sorted((ROOT / "src/research").glob("*.py")), ROOT / "scripts/v2_team_efficiency.py",
+                      directory / "protocol.json", directory / "source.json"]
+    assert manifest["code_sha256"] == {
+        manifest_identifier(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in expected_files
+    }
+    for name in ("protocol.json", "source.json"):
+        path = directory / name
+        key = path.resolve().as_uri() if input_mode == "external" else f"research/v2_0_2/{name}"
+        assert manifest["code_sha256"][key] == hashlib.sha256(path.read_bytes()).hexdigest()
+    assert manifest["output_sha256"] == {k: v for k, v in hashes(tmp_path).items() if k != "manifest.json"}
     for name in ("pooled_metrics.csv", "season_metrics.csv", "fallbacks.csv", "exclusions.csv", "predictions.csv", "paired_deltas.csv"):
         pd.testing.assert_frame_equal(pd.read_csv(tmp_path / name), pd.read_csv(RESEARCH / "outputs" / name),
                                       check_exact=False, atol=1e-12, rtol=1e-12)
     assert hashes(ROOT / "artifacts") == before == manifest["production_artifact_sha256"]
+    assert hashes(RESEARCH) == frozen
+    assert hashes(external_research_directory) == external_before
     expected = json.loads((RESEARCH / "outputs/manifest.json").read_text())
     assert manifest["source"]["raw_sha256"] == expected["source"]["raw_sha256"]
     assert not manifest["promotion_allowed"]

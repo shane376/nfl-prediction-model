@@ -19,6 +19,15 @@ from src.research.team_context import CONFIGS, build_features
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def manifest_identifier(path):
+    """Repo-relative keys internally; canonical file URIs for external inputs."""
+    resolved = Path(path).resolve(strict=True)
+    try:
+        return resolved.relative_to(ROOT.resolve()).as_posix()
+    except ValueError:
+        return resolved.as_uri()
+
+
 def hashes(directory):
     return {p.relative_to(directory).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in sorted(directory.rglob("*")) if p.is_file() and p.name != ".prediction-writer.lock"}
@@ -100,7 +109,7 @@ def paired_deltas(predictions, draws=5000):
 
 
 def run(directory=RESEARCH, output=None):
-    directory = Path(directory)
+    directory = Path(directory).resolve()
     output = Path(output) if output else directory / "outputs"
     # Refuse any output path in production storage, including through symlinks.
     artifacts = (ROOT / "artifacts").resolve()
@@ -170,7 +179,7 @@ def run(directory=RESEARCH, output=None):
                     evidence="latest-data reconstruction; historical publication and venue provenance unverified",
                     log_loss_epsilon=float(np.finfo(np.float64).eps),
                     production_artifact_sha256=before,
-                    code_sha256={p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files},
+                    code_sha256={manifest_identifier(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in files},
                     output_sha256={k: v for k, v in hashes(output).items() if k != "manifest.json"},
                     promotion_allowed=False, prospective_confirmation="not performed; requires frozen future season protocol")
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
