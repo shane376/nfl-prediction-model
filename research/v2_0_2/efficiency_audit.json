@@ -1,0 +1,88 @@
+{
+  "schedule_dictionary.csv": {
+    "url": "https://raw.githubusercontent.com/nflverse/nflreadr/main/data-raw/dictionary_schedules.csv",
+    "retrieved_at": "2026-11-14T21:31:37.486137+00:00",
+    "last_modified": null,
+    "bytes": 4516,
+    "sha256": "f07a07a0b569b2526c2e3944d6da4f0d0b479cd1ead22fcff7a2fc164e0cf0f4"
+  },
+  "pbp_dictionary.csv": {
+    "url": "https://raw.githubusercontent.com/nflverse/nflreadr/main/data-raw/dictionary_pbp.csv",
+    "retrieved_at": "2026-11-14T21:31:37.614706+00:00",
+    "last_modified": null,
+    "bytes": 39127,
+    "sha256": "137f3c1ae4794e2a1a4bc55ac543d807d36c6c3c24c8088e0489dd7a5c156f33"
+  },
+  "availability.Rmd": {
+    "url": "https://raw.githubusercontent.com/nflverse/nflreadr/main/vignettes/articles/nflverse_data_schedule.Rmd",
+    "retrieved_at": "2026-11-14T21:31:37.714827+00:00",
+    "last_modified": null,
+    "bytes": 9462,
+    "sha256": "6ea71f130135c4ff7cebc7221319428e3c1ba69fc9b8f1d26a306d5271670278"
+  },
+  "depth_charts.R": {
+    "url": "https://raw.githubusercontent.com/nflverse/nflreadr/main/R/load_depth_charts.R",
+    "retrieved_at": "2026-11-14T21:31:37.806669+00:00",
+    "last_modified": null,
+    "bytes": 1460,
+    "sha256": "2dd6e551f851ae360444365b0aeb068238d781113e7dd62d90e02ce11e812b0a"
+  },
+  "ep_models.html": {
+    "url": "https://opensourcefootball.com/posts/2020-09-28-nflfastr-ep-wp-and-cp-models/",
+    "retrieved_at": "2026-11-14T21:31:37.913736+00:00",
+    "last_modified": null,
+    "bytes": 220495,
+    "sha256": "c562ccdc07cbfa9a6f2101de6bde4b9784db3c019ae30b3340bb6d925085b012"
+  },
+  "model_training.R": {
+    "url": "https://raw.githubusercontent.com/nflverse/fastrmodels/master/data-raw/MODELS.R",
+    "retrieved_at": "2026-11-14T21:31:38.050216+00:00",
+    "last_modified": null,
+    "bytes": 7459,
+    "sha256": "f3669be4c058ef22e59a6f1e69c6a8006b2088a77d73b7ce6b37675ce301d31c"
+  },
+  "model_serialization.R": {
+    "url": "https://raw.githubusercontent.com/nflverse/fastrmodels/master/data-raw/DATASET.R",
+    "retrieved_at": "2026-11-14T21:31:38.219460+00:00",
+    "last_modified": null,
+    "bytes": 2545,
+    "sha256": "e52855ce2b2f8077e86866ca32319db8e9ed116b90089e7a0d299af3760ea3c2"
+  },
+  "nflverse_data_license.md": {
+    "url": "https://raw.githubusercontent.com/nflverse/nflverse-data/main/LICENSE.md",
+    "retrieved_at": "2026-11-14T21:31:38.371725+00:00",
+    "last_modified": null,
+    "bytes": 18651,
+    "sha256": "2a82ac9bbc3e3ee066908381e8d373896db5a6025d083fbd59692fe9ccfb9111"
+  },
+  "nfldata_README.md": {
+    "url": "https://raw.githubusercontent.com/nflverse/nfldata/master/README.md",
+    "retrieved_at": "2026-11-14T21:31:38.478527+00:00",
+    "last_modified": null,
+    "bytes": 1017,
+    "sha256": "42035b4ee0e548389ef91509bc672a861b43c6226a7317507d41536816c9f88a"
+  },
+  "pbp_2021": {
+    "url": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2021.parquet",
+    "retrieved_at": "2026-11-14T21:22:43.395709+00:00",
+    "last_modified": "Thu, 08 Jan 2026 13:13:13 GMT",
+    "bytes": 20249925,
+    "sha256": "333ad34378e5339d5172717cc83378e908daf02c8699416ab3e17c2ec10f78d8",
+    "audit": {
+      "rows": 49922,
+      "eligible": 34139,
+      "missing_epa": 0,
+      "missing_success": 0,
+      "missing_team": 0,
+      "dropbacks": 20907,
+      "missing_passer_id": 910
+    },
+    "team_game_rows": 1088,
+    "epa_incomplete_team_games": 0,
+    "success_incomplete_team_games": 0,
+    "ep_model_training_end": null,
+    "historical_publication_verified": false,
+    "decision": "exploratory only; excluded from candidate comparisons"
+  },
+  "qb_decision": "Blocked: final passer IDs are not pregame expected-starter assignments. No verified historical starter revision archive."
+}

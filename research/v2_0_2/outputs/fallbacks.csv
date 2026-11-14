@@ -1,0 +1,13 @@
+lag_hours,season,games,rest_unavailable_home,rest_unavailable_away,elo_initialized_sides,elo_incomplete_sides,venue_unknown,neutral,venue_enabled
+24,2021,272,16,16,0,0,0,3,False
+24,2022,271,16,16,0,0,0,6,False
+24,2023,272,16,16,0,0,0,5,False
+24,2024,272,16,16,0,0,0,5,False
+48,2021,272,16,16,0,0,0,3,False
+48,2022,271,16,16,0,0,0,6,False
+48,2023,272,16,16,0,0,0,5,False
+48,2024,272,16,16,0,0,0,5,False
+72,2021,272,16,17,0,0,0,3,False
+72,2022,271,17,17,0,0,0,6,False
+72,2023,272,17,16,0,0,0,5,False
+72,2024,272,16,16,0,0,0,5,False

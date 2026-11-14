@@ -1,0 +1,28 @@
+{
+  "version": "v2.0.2",
+  "status": "research only; latest-data reconstruction",
+  "configs_and_lags_fixed_before_candidate_scores": true,
+  "duration_proxy_clarification": "Implementation review corrected an initial kickoff-plus-lag pass to a four-hour end proxy plus postgame lag. The proxy was not searched; all final lags were rerun with the same proxy.",
+  "warmup_seasons": [2015, 2016],
+  "first_training_season": 2017,
+  "evaluation_seasons": [2021, 2022, 2023, 2024],
+  "descriptive_only_not_evaluated": [2025, 2026],
+  "forecast_hours_before_kickoff": 24,
+  "assumed_availability_lag_hours": [24, 48, 72],
+  "primary_lag_hours": 48,
+  "assumed_game_duration_hours": 4,
+  "venue_enabled": false,
+  "venue_reason": "Complete current location fields; historical pregame publication/revision provenance unverified. Omitted before candidate scoring.",
+  "configs": {
+    "v1_a": ["win_pct_diff", "point_diff_diff"],
+    "v1_a_prior_elo": ["win_pct_diff", "point_diff_diff", "prior_elo_diff"],
+    "v1_a_prior_elo_rest": ["win_pct_diff", "point_diff_diff", "prior_elo_diff", "rest_diff", "home_opener", "away_opener", "home_rest_unavailable", "away_rest_unavailable"]
+  },
+  "model": {"scaler": "StandardScaler", "penalty": "L2", "C": 1, "threshold": 0.5, "random_state": 42, "max_iter": 1000},
+  "elo": {"initial": 1500, "K": 20, "home_advantage": 50, "offseason_regression": 0.25, "margin_multiplier": false, "frozen_within_target_season": true},
+  "rest": {"calendar_timezone": "America/New_York", "clip_days": 14, "default_days": 7, "same_season_only": true},
+  "efficiency": {"prior_plays": 200, "minimum_valid_fraction": 0.95, "exploratory_only": true, "included_in_model_comparison": false},
+  "qb_included": false,
+  "no_parameter_or_calibration_search": true,
+  "promotion": "forbidden; historical provenance and prospective confirmation not established"
+}
