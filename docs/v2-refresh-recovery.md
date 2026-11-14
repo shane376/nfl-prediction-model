@@ -10,7 +10,7 @@ Actual job logs for scheduled runs [43616296687](https://github.com/shane376/nfl
 
 The repair adds an explicit research evaluation cutoff and pins the report reproduction test to the existing manifest cutoff. A regression advances source freshness to November 14 while retaining exact historical evidence-table comparisons and model/input fingerprint checks. Default diagnostics behavior stays source-based. No workflow bypass or test removal is needed.
 
-The pending [artifact review PR #6](https://github.com/shane376/nfl-prediction-model/pull/6) targets main. It is left untouched. Its five changing derived/source files overlap this recovery snapshot; review conflicts if that PR and this one are both merged. Future workflow runs merge reviewed code from main into the durable branch; no reset, force-push, automatic merge, or deployment is introduced.
+The pending [artifact review PR #6](https://github.com/shane376/nfl-prediction-model/pull/6) targets main and is left untouched. A Git merge-tree simulation using the actual branches and recovery snapshot confirmed a follow-on conflict in generated schedule/source/report files when integrating this recovery into the durable branch. The workflow now uses a helper copied from reviewed main before switching branches. It handles conflicts only within the five generated snapshot files, selecting the complete group from the newer retrieval. It rejects dropped games, relaxed prediction locks, source identity changes, and any forecast/model/code conflict for manual review. Seven temporary-repository regression cases cover both freshness orderings and unsafe conflicts. This merges reviewed code into the review branch; it never merges a PR into main. No reset, force-push, automatic PR merge, or deployment is introduced. PR #6 will need review for overlap after this PR lands.
 
 ## Source and coverage
 
@@ -22,7 +22,7 @@ Missing authentic coverage: 121 past games (Weeks 1-8), plus 122 future games (W
 
 ## Metrics
 
-Binary metrics exclude pending results and ties. Brier/log loss use saved home-win probabilities; accuracy uses the first authentic pregame revision. Small live samples do not establish model quality.
+Binary metrics exclude pending results and ties. Scoring retains the existing 12-hour kickoff embargo because nflverse does not provide a final-whistle timestamp. Brier/log loss use saved home-win probabilities; accuracy uses the first authentic pregame revision. Small live samples do not establish model quality.
 
 | Cohort | Scored | Correct | Accuracy | Brier | Log loss |
 |---|---:|---:|---:|---:|---:|
@@ -71,4 +71,4 @@ Scores are away-home. A dash means no final score is available yet; pending game
 
 ## Validation
 
-Full suite: **128 passed** against the refreshed snapshot (`python -m pytest -q --basetemp .pytest-tmp-recovery-final -o cache_dir=.review/recovery/pytest-cache --tb=short`). Isolated reconciliation and all 29 integrity audits passed. Append-only history checks passed against both `origin/main` and `origin/automation/nfl-artifacts`; Git byte comparisons confirm all original predictions, retrospective records, frozen model files/metadata, and holdout backtest are unchanged. `git diff --check` passed. No live workflow was dispatched.
+Final full suite: **135 passed** in 96.72 seconds (`python -m pytest -q --basetemp .pytest-tmp-recovery-complete -o cache_dir=.review/recovery/pytest-cache --tb=short`). This includes seven real-Git merge regressions and the historical-cutoff regression. A disposable-repository replay using actual main/automation/recovery snapshot contents also passed with a clean, coherent result. Isolated reconciliation and all 29 integrity audits passed. Append-only history checks passed against both `origin/main` and `origin/automation/nfl-artifacts`; Git byte comparisons confirm all original predictions, retrospective records, frozen model files/metadata, and holdout backtest are unchanged. `git diff --check` passed. No live workflow was dispatched.
