@@ -1,0 +1,11 @@
+season,games,expected,completed,missing_kickoff,missing_scores,venue_unknown,neutral,id_metadata_errors,teams,team_counts_valid,complete
+2015,256,256,256,0,0,0,3,0,32,True,True
+2016,256,256,256,0,0,0,4,0,32,True,True
+2017,256,256,256,0,0,0,5,0,32,True,True
+2018,256,256,256,0,0,0,3,0,32,True,True
+2019,256,256,256,0,0,0,5,0,32,True,True
+2020,256,256,256,0,0,0,3,0,32,True,True
+2021,272,272,272,0,0,0,3,0,32,True,True
+2022,271,271,271,0,0,0,6,0,32,True,True
+2023,272,272,272,0,0,0,5,0,32,True,True
+2024,272,272,272,0,0,0,5,0,32,True,True
