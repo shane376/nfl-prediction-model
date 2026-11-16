@@ -378,9 +378,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "BUF",
+    "result": "correct",
+    "target": 0,
     "integrity_error": null
   },
   {
@@ -402,9 +402,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "CAR",
+    "result": "incorrect",
+    "target": 0,
     "integrity_error": null
   },
   {
@@ -426,9 +426,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "CLE",
+    "result": "correct",
+    "target": 1,
     "integrity_error": null
   },
   {
@@ -450,9 +450,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "JAX",
+    "result": "correct",
+    "target": 0,
     "integrity_error": null
   },
   {
@@ -474,9 +474,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "KC",
+    "result": "correct",
+    "target": 0,
     "integrity_error": null
   },
   {
@@ -546,9 +546,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "IND",
+    "result": "correct",
+    "target": 1,
     "integrity_error": null
   },
   {
@@ -570,9 +570,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "MIN",
+    "result": "correct",
+    "target": 0,
     "integrity_error": null
   },
   {
@@ -594,9 +594,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "DET",
+    "result": "correct",
+    "target": 1,
     "integrity_error": null
   },
   {
@@ -830,6 +830,30 @@
     "data_cutoff": "2026-11-15T20:36:14.812381+00:00",
     "training_cutoff": "2026-11-05T21:57:09.561472+00:00",
     "source_freshness": "2026-11-15T20:36:13.925194+00:00",
+    "source_stale": false,
+    "prediction_status": "recorded",
+    "kind": "live",
+    "revision": 1,
+    "actual": null,
+    "result": "pending",
+    "target": null,
+    "integrity_error": null
+  },
+  {
+    "season": 2026,
+    "week": 11,
+    "game_id": "2026_11_MIN_SF",
+    "home_team": "SF",
+    "away_team": "MIN",
+    "kickoff": "2026-11-23T01:20:00+00:00",
+    "predicted_winner": "SF",
+    "home_probability": 0.5889336881322196,
+    "away_probability": 0.4110663118677804,
+    "model_version": "v1A-1aa64cb4b1",
+    "generated_at": "2026-11-16T07:19:36.997269+00:00",
+    "data_cutoff": "2026-11-16T07:19:36.968639+00:00",
+    "training_cutoff": "2026-11-05T21:57:09.561472+00:00",
+    "source_freshness": "2026-11-16T07:19:35.551041+00:00",
     "source_stale": false,
     "prediction_status": "recorded",
     "kind": "live",

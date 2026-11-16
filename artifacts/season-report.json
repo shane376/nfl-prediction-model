@@ -1,9 +1,9 @@
 {
   "season": 2026,
-  "generated_at": "2026-11-16T00:29:36.886610+00:00",
+  "generated_at": "2026-11-16T07:19:41.375691+00:00",
   "source": {
     "source": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv",
-    "fetched_at": "2026-11-16T00:29:30.491170+00:00",
+    "fetched_at": "2026-11-16T07:19:35.551041+00:00",
     "error": null,
     "stale": false,
     "offline": false
@@ -241,8 +241,8 @@
     {
       "week": 10,
       "scheduled_games": 14,
-      "completed_games": 11,
-      "scheduled_unplayed": 2,
+      "completed_games": 13,
+      "scheduled_unplayed": 1,
       "ties": 0,
       "postponed": 0,
       "canceled": 0,
@@ -254,10 +254,10 @@
       "missing_past_authentic": 0,
       "missing_future_authentic": 0,
       "missing_retrospective_backtests": 0,
-      "awaiting_result_embargo": 10,
-      "missing_results_after_kickoff": 1,
+      "awaiting_result_embargo": 4,
+      "missing_results_after_kickoff": 0,
       "missing_kickoff": 0,
-      "games_missing_required_data": 1
+      "games_missing_required_data": 0
     },
     {
       "week": 11,
@@ -267,13 +267,13 @@
       "ties": 0,
       "postponed": 0,
       "canceled": 0,
-      "authentic_predictions": 11,
-      "valid_authentic_predictions": 11,
+      "authentic_predictions": 12,
+      "valid_authentic_predictions": 12,
       "retrospective_predictions": 0,
       "valid_retrospective_predictions": 0,
-      "missing_authentic_predictions": 2,
+      "missing_authentic_predictions": 1,
       "missing_past_authentic": 0,
-      "missing_future_authentic": 2,
+      "missing_future_authentic": 1,
       "missing_retrospective_backtests": 0,
       "awaiting_result_embargo": 0,
       "missing_results_after_kickoff": 0,
@@ -430,48 +430,48 @@
   ],
   "coverage_totals": {
     "scheduled_games": 272,
-    "completed_games": 147,
-    "scheduled_unplayed": 124,
+    "completed_games": 149,
+    "scheduled_unplayed": 123,
     "ties": 1,
     "postponed": 0,
     "canceled": 0,
-    "authentic_predictions": 40,
-    "valid_authentic_predictions": 40,
+    "authentic_predictions": 41,
+    "valid_authentic_predictions": 41,
     "retrospective_predictions": 121,
     "valid_retrospective_predictions": 121,
-    "missing_authentic_predictions": 232,
+    "missing_authentic_predictions": 231,
     "missing_past_authentic": 121,
-    "missing_future_authentic": 111,
+    "missing_future_authentic": 110,
     "missing_retrospective_backtests": 0,
-    "awaiting_result_embargo": 10,
-    "missing_results_after_kickoff": 1,
+    "awaiting_result_embargo": 4,
+    "missing_results_after_kickoff": 0,
     "missing_kickoff": 0,
-    "games_missing_required_data": 1
+    "games_missing_required_data": 0
   },
   "recorded": {
     "summary": {
-      "games": 16,
-      "accuracy": 0.75,
-      "log_loss": 0.5928660840825991,
-      "brier": 0.20097872552702814,
+      "games": 24,
+      "accuracy": 0.7916666666666666,
+      "log_loss": 0.5803683799054281,
+      "brier": 0.19477302819606615,
       "calibration": {
         "predicted": [
-          0.3815570212401492,
-          0.47186504812883967,
+          0.36447954981479924,
+          0.4899567739475346,
           0.6412596803809654
         ],
         "observed": [
           0.0,
-          0.1111111111111111,
+          0.26666666666666666,
           0.8
         ]
       },
-      "records": 40,
-      "correct": 12,
-      "incorrect": 4,
+      "records": 41,
+      "correct": 19,
+      "incorrect": 5,
       "ties": 0,
       "unavailable": 0,
-      "home_baseline_accuracy": 0.3125
+      "home_baseline_accuracy": 0.3333333333333333
     },
     "weekly": [
       {
@@ -611,18 +611,18 @@
       },
       {
         "week": 10,
-        "games": 1,
-        "accuracy": 0.0,
-        "log_loss": 0.9493679382229574,
-        "brier": 0.37578672211098446,
+        "games": 9,
+        "accuracy": 0.7777777777777778,
+        "log_loss": 0.5991501900701829,
+        "brier": 0.20385331004268023,
         "records": 14,
-        "correct": 0,
-        "incorrect": 1,
+        "correct": 7,
+        "incorrect": 2,
         "ties": 0,
         "unavailable": 0,
-        "home_baseline_accuracy": 0.0,
-        "cumulative_accuracy": 0.75,
-        "cumulative_games": 16
+        "home_baseline_accuracy": 0.3333333333333333,
+        "cumulative_accuracy": 0.7916666666666666,
+        "cumulative_games": 24
       },
       {
         "week": 11,
@@ -630,14 +630,14 @@
         "accuracy": null,
         "log_loss": null,
         "brier": null,
-        "records": 11,
+        "records": 12,
         "correct": 0,
         "incorrect": 0,
         "ties": 0,
         "unavailable": 0,
         "home_baseline_accuracy": null,
-        "cumulative_accuracy": 0.75,
-        "cumulative_games": 16
+        "cumulative_accuracy": 0.7916666666666666,
+        "cumulative_games": 24
       },
       {
         "week": 12,
@@ -651,8 +651,8 @@
         "ties": 0,
         "unavailable": 0,
         "home_baseline_accuracy": null,
-        "cumulative_accuracy": 0.75,
-        "cumulative_games": 16
+        "cumulative_accuracy": 0.7916666666666666,
+        "cumulative_games": 24
       },
       {
         "week": 13,
@@ -666,8 +666,8 @@
         "ties": 0,
         "unavailable": 0,
         "home_baseline_accuracy": null,
-        "cumulative_accuracy": 0.75,
-        "cumulative_games": 16
+        "cumulative_accuracy": 0.7916666666666666,
+        "cumulative_games": 24
       },
       {
         "week": 14,
@@ -681,8 +681,8 @@
         "ties": 0,
         "unavailable": 0,
         "home_baseline_accuracy": null,
-        "cumulative_accuracy": 0.75,
-        "cumulative_games": 16
+        "cumulative_accuracy": 0.7916666666666666,
+        "cumulative_games": 24
       },
       {
         "week": 15,
@@ -696,8 +696,8 @@
         "ties": 0,
         "unavailable": 0,
         "home_baseline_accuracy": null,
-        "cumulative_accuracy": 0.75,
-        "cumulative_games": 16
+        "cumulative_accuracy": 0.7916666666666666,
+        "cumulative_games": 24
       },
       {
         "week": 16,
@@ -711,8 +711,8 @@
         "ties": 0,
         "unavailable": 0,
         "home_baseline_accuracy": null,
-        "cumulative_accuracy": 0.75,
-        "cumulative_games": 16
+        "cumulative_accuracy": 0.7916666666666666,
+        "cumulative_games": 24
       },
       {
         "week": 17,
@@ -726,8 +726,8 @@
         "ties": 0,
         "unavailable": 0,
         "home_baseline_accuracy": null,
-        "cumulative_accuracy": 0.75,
-        "cumulative_games": 16
+        "cumulative_accuracy": 0.7916666666666666,
+        "cumulative_games": 24
       },
       {
         "week": 18,
@@ -741,8 +741,8 @@
         "ties": 0,
         "unavailable": 0,
         "home_baseline_accuracy": null,
-        "cumulative_accuracy": 0.75,
-        "cumulative_games": 16
+        "cumulative_accuracy": 0.7916666666666666,
+        "cumulative_games": 24
       }
     ]
   },
