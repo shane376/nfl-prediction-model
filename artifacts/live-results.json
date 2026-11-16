@@ -522,9 +522,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "LA",
+    "result": "correct",
+    "target": 0,
     "integrity_error": null
   },
   {
@@ -618,9 +618,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "CIN",
+    "result": "correct",
+    "target": 1,
     "integrity_error": null
   },
   {
@@ -642,9 +642,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "SEA",
+    "result": "incorrect",
+    "target": 0,
     "integrity_error": null
   },
   {
@@ -666,9 +666,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "SF",
+    "result": "correct",
+    "target": 0,
     "integrity_error": null
   },
   {
