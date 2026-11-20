@@ -786,9 +786,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "HOU",
+    "result": "correct",
+    "target": 1,
     "integrity_error": null
   },
   {
