@@ -714,9 +714,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "KC",
+    "result": "correct",
+    "target": 1,
     "integrity_error": null
   },
   {
@@ -738,9 +738,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "CAR",
+    "result": "correct",
+    "target": 1,
     "integrity_error": null
   },
   {
@@ -810,9 +810,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "NYG",
+    "result": "incorrect",
+    "target": 1,
     "integrity_error": null
   },
   {
@@ -834,9 +834,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "DEN",
+    "result": "correct",
+    "target": 1,
     "integrity_error": null
   },
   {
@@ -858,9 +858,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "BUF",
+    "result": "correct",
+    "target": 1,
     "integrity_error": null
   },
   {
@@ -906,9 +906,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "CHI",
+    "result": "correct",
+    "target": 1,
     "integrity_error": null
   },
   {
@@ -930,9 +930,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "NYJ",
+    "result": "correct",
+    "target": 0,
     "integrity_error": null
   },
   {
@@ -954,9 +954,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "PHI",
+    "result": "incorrect",
+    "target": 1,
     "integrity_error": null
   },
   {
@@ -978,9 +978,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "DET",
+    "result": "correct",
+    "target": 1,
     "integrity_error": null
   },
   {
@@ -1002,9 +1002,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "DAL",
+    "result": "correct",
+    "target": 1,
     "integrity_error": null
   },
   {
