@@ -1,9 +1,11 @@
 """Read-only dashboard: training and recording happen through the CLI."""
 import json
 import joblib
+import os
 from pathlib import Path
 import sys
 from typing import cast
+from urllib.request import Request, urlopen
 import pandas as pd
 import altair as alt
 import streamlit as st
@@ -45,6 +47,24 @@ def reconstructed_results(games, store_path, retro_modified, archive_modified):
     return retrospective_results(games)
 
 
+REFRESH_RUNS = "https://github.com/shane376/nfl-prediction-model/actions/workflows/refresh.yml"
+
+
+@st.cache_data(ttl=300, max_entries=1, show_spinner=False)
+def latest_refresh_run():
+    url = ("https://api.github.com/repos/shane376/nfl-prediction-model/actions/workflows/"
+           "refresh.yml/runs?branch=main&status=completed&per_page=1")
+    try:
+        with urlopen(Request(url, headers={"Accept": "application/vnd.github+json"}), timeout=3) as response:
+            run = json.load(response)["workflow_runs"][0]
+        finished = pd.to_datetime(run["updated_at"], utc=True)
+        if pd.notna(finished):
+            return run["conclusion"], finished
+    except (OSError, ValueError, KeyError, IndexError, TypeError):
+        pass
+    return None
+
+
 st.html(Path(__file__).with_name("style.css"))
 header = st.container(horizontal=True, vertical_alignment="center", gap="small")
 header.markdown("### Gridiron Lab", width="content")
@@ -74,7 +94,20 @@ view = st.sidebar.radio("Explore", ["Weekly forecasts", "Team Explorer", "Season
 status = data_status(source, season_games, now())
 header.badge("Stale source" if status["stale"] else "Source current",
              color="orange" if status["stale"] else "green",
-             help=f"Last successful refresh: {status['refresh']}. {status['pending']} results pending. Local snapshot only.")
+             help=f"{status['pending']} results pending in this snapshot.")
+header.caption(f"Last Updated · {status['refresh']}", width="content")
+if status["stale"]:
+    st.warning("The displayed snapshot is stale. Provisional forecasts are paused until fresh data is published.")
+if os.environ.get("NFL_MONITOR_REFRESH") == "1":
+    run = latest_refresh_run()
+    if run is None:
+        st.warning(f"Refresh status is unavailable. [View GitHub Actions]({REFRESH_RUNS}).")
+    elif run[0] != "success":
+        st.warning(f"The latest completed refresh ended with status **{run[0]}**. "
+                   f"[View GitHub Actions]({REFRESH_RUNS}).")
+    elif now() - run[1] > pd.Timedelta(hours=24):
+        st.warning(f"No successful refresh has finished in the past 24 hours. "
+                   f"[View GitHub Actions]({REFRESH_RUNS}).")
 with st.sidebar.expander("Data & forecast guide"):
     st.caption(f"V1.2.2 | Last successful refresh: {status['refresh']} | {status['pending']} results pending")
     if status["stale"]:
