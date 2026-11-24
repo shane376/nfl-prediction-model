@@ -2,10 +2,11 @@ name: Refresh pregame predictions
 on:
   schedule:
     - cron: '7,37 * * * *'
+  push:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: write
-  pull-requests: write
 concurrency:
   group: nfl-prediction-artifacts
   cancel-in-progress: false
@@ -15,14 +16,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      BASE_BRANCH: ${{ github.event.repository.default_branch }}
       DATA_BRANCH: automation/nfl-artifacts
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -31,6 +31,9 @@ jobs:
       - name: Continue durable history, then integrate reviewed code
         run: |
           cp scripts/integrate_refresh_branch.py "$RUNNER_TEMP/integrate_refresh_branch.py"
+          cp scripts/refresh_validation.py "$RUNNER_TEMP/refresh_validation.py"
+          REVIEWED_SHA=$(git rev-parse HEAD)
+          echo "REVIEWED_SHA=$REVIEWED_SHA" >> "$GITHUB_ENV"
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
           if git show-ref --verify --quiet "refs/remotes/origin/$DATA_BRANCH"; then
@@ -40,8 +43,9 @@ jobs:
           fi
           HISTORY_BASE=$(git rev-parse HEAD)
           echo "HISTORY_BASE=$HISTORY_BASE" >> "$GITHUB_ENV"
-          python "$RUNNER_TEMP/integrate_refresh_branch.py" "origin/$BASE_BRANCH"
-          python scripts/check_prediction_history.py "$HISTORY_BASE"
+          python "$RUNNER_TEMP/integrate_refresh_branch.py" "$REVIEWED_SHA" --strict
+          python "$RUNNER_TEMP/refresh_validation.py" guard --reviewed "$REVIEWED_SHA" --history "$HISTORY_BASE"
+          echo "ARTIFACT_BASE=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - run: python -m pytest -q
       - run: python -m src.pipeline refresh
       - name: Require reviewed model; never train implicitly
@@ -50,26 +54,32 @@ jobs:
           test -f artifacts/retrospective/model.joblib
       - run: python -m src.pipeline predict --season 2026
       - run: python -m src.pipeline backtest --offline
-      - run: python -m src.pipeline evaluate
-      - name: Persist append-only artifacts on the review branch
+      - run: python -m src.pipeline evaluate --offline
+      - name: Validate generated state and suppress execution-only churn
+        run: |
+          python -m scripts.refresh_validation finalize --reviewed "$REVIEWED_SHA" --history "$HISTORY_BASE" --base "$ARTIFACT_BASE" --receipt "$RUNNER_TEMP/refresh-validation.json"
+      - name: Commit the validated artifact state
         run: |
           python scripts/check_prediction_history.py "$HISTORY_BASE"
           git add artifacts
           if ! git diff --cached --quiet; then
             git commit -m "data: refresh schedule and preserve pregame records"
           fi
-          git push origin "HEAD:$DATA_BRANCH"
-      - name: Open a review PR if none is pending (never merge automatically)
+      - name: Publish validated production snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [ -z "$(gh pr list --head "$DATA_BRANCH" --base "$BASE_BRANCH" --state open --json number --jq '.[0].number // empty')" ]; then
-            if ! git diff --quiet "origin/$BASE_BRANCH" HEAD -- artifacts; then
-              printf '%s\n' 'Refreshed public schedule, append-only pregame records, and reconciled results. Review before merging; no automated merge or deployment is performed. Check source freshness, prediction timestamps, and workflow logs.' > "$RUNNER_TEMP/nfl-pr.md"
-              gh pr create --head "$DATA_BRANCH" --base "$BASE_BRANCH" --title "data: update NFL prediction artifacts" --body-file "$RUNNER_TEMP/nfl-pr.md"
-            fi
-          fi
+          python -m scripts.publish_refresh --receipt "$RUNNER_TEMP/refresh-validation.json" --branch "$DATA_BRANCH"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: nfl-pipeline-artifacts
           path: artifacts/
+          retention-days: 90
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: refresh-validation-receipt
+          path: ${{ runner.temp }}/refresh-validation.json
+          if-no-files-found: ignore
           retention-days: 90

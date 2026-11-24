@@ -87,12 +87,27 @@ def test_dashboard_offline_read_only_all_views(monkeypatch):
     before = hashes()
     app = AppTest.from_file(str(root/'dashboard/app.py'), default_timeout=30).run()
     assert not app.exception
+    assert any("Last Updated" in caption.value for caption in app.caption)
     app.selectbox(key='week').select(18).run()
     assert not app.exception
     for view in ['Team Explorer', 'Season performance', 'Prediction history', 'Methodology']:
         app.radio[0].set_value(view).run()
         assert not app.exception
     assert before == hashes()
+
+
+def test_dashboard_reports_failed_refresh(monkeypatch):
+    import io
+    import urllib.request
+    from streamlit.testing.v1 import AppTest
+
+    monkeypatch.setenv("NFL_MONITOR_REFRESH", "1")
+    monkeypatch.setattr(urllib.request, "urlopen", lambda *args, **kwargs: io.BytesIO(
+        b'{"workflow_runs":[{"conclusion":"failure","updated_at":"2026-11-24T17:00:00Z"}]}'
+    ))
+    app = AppTest.from_file(Path(__file__).resolve().parents[1] / "dashboard/app.py", default_timeout=30).run()
+    assert not app.exception
+    assert any("latest completed refresh ended with status **failure**" in warning.value for warning in app.warning)
 
 
 def test_probability_charts_do_not_expose_raw_diagnostic_tooltips(games, store, monkeypatch):

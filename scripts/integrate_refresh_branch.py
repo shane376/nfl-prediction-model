@@ -24,10 +24,12 @@ def timestamp(value):
     return result
 
 
-def integrate(reviewed):
+def integrate(reviewed, strict=False):
     result = subprocess.run(["git", "merge", "--no-edit", reviewed], check=False)
     if result.returncode == 0:
         return
+    if strict:
+        raise RuntimeError("Merge conflict: stop for human review; no artifact resolution attempted")
     conflicts = git("diff", "--name-only", "--diff-filter=U").splitlines()
     if not conflicts or set(conflicts) - set(GENERATED):
         raise RuntimeError("Merge requires manual review; conflicts outside generated snapshot files")
@@ -53,4 +55,4 @@ def integrate(reviewed):
 
 
 if __name__ == "__main__":
-    integrate(sys.argv[1])
+    integrate(sys.argv[1], strict="--strict" in sys.argv[2:])
