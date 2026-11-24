@@ -762,9 +762,9 @@
     "prediction_status": "recorded",
     "kind": "live",
     "revision": 1,
-    "actual": null,
-    "result": "pending",
-    "target": null,
+    "actual": "WAS",
+    "result": "incorrect",
+    "target": 1,
     "integrity_error": null
   },
   {
