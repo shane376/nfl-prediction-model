@@ -1,9 +1,9 @@
 {
   "season": 2026,
-  "generated_at": "2026-11-24T17:35:02.390333+00:00",
+  "generated_at": "2026-11-25T01:43:14.275162+00:00",
   "source": {
     "source": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv",
-    "fetched_at": "2026-11-24T17:34:58.500803+00:00",
+    "fetched_at": "2026-11-25T01:43:08.398373+00:00",
     "error": null,
     "stale": false,
     "offline": false
