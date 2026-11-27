@@ -1390,5 +1390,29 @@
     "result": "pending",
     "target": null,
     "integrity_error": null
+  },
+  {
+    "season": 2026,
+    "week": 13,
+    "game_id": "2026_13_KC_LA",
+    "home_team": "LA",
+    "away_team": "KC",
+    "kickoff": "2026-12-04T01:15:00+00:00",
+    "predicted_winner": "KC",
+    "home_probability": 0.4867235186970402,
+    "away_probability": 0.5132764813029598,
+    "model_version": "v1A-1aa64cb4b1",
+    "generated_at": "2026-11-27T04:09:44.971019+00:00",
+    "data_cutoff": "2026-11-27T04:09:44.957192+00:00",
+    "training_cutoff": "2026-11-05T21:57:09.561472+00:00",
+    "source_freshness": "2026-11-27T04:09:44.112929+00:00",
+    "source_stale": false,
+    "prediction_status": "recorded",
+    "kind": "live",
+    "revision": 1,
+    "actual": null,
+    "result": "pending",
+    "target": null,
+    "integrity_error": null
   }
 ]
