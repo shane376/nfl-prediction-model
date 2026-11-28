@@ -1,0 +1,20 @@
+{
+  "season": 2026,
+  "week": 12,
+  "game_id": "2026_12_WAS_ARI",
+  "home_team": "ARI",
+  "away_team": "WAS",
+  "kickoff": "2026-11-29T21:25:00+00:00",
+  "predicted_winner": "WAS",
+  "home_probability": 0.47398125515790107,
+  "away_probability": 0.526018744842099,
+  "model_version": "v1A-1aa64cb4b1",
+  "generated_at": "2026-11-23T01:38:33.087731+00:00",
+  "data_cutoff": "2026-11-23T01:38:33.069797+00:00",
+  "training_cutoff": "2026-11-05T21:57:09.561472+00:00",
+  "source_freshness": "2026-11-23T01:38:32.081921+00:00",
+  "source_stale": false,
+  "prediction_status": "recorded",
+  "kind": "live",
+  "revision": 1
+}

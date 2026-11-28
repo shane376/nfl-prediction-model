@@ -1,0 +1,20 @@
+{
+  "season": 2026,
+  "week": 12,
+  "game_id": "2026_12_SEA_SF",
+  "home_team": "SF",
+  "away_team": "SEA",
+  "kickoff": "2026-11-29T21:25:00+00:00",
+  "predicted_winner": "SF",
+  "home_probability": 0.6208618240991938,
+  "away_probability": 0.37913817590080623,
+  "model_version": "v1A-1aa64cb4b1",
+  "generated_at": "2026-11-23T01:38:33.097756+00:00",
+  "data_cutoff": "2026-11-23T01:38:33.089133+00:00",
+  "training_cutoff": "2026-11-05T21:57:09.561472+00:00",
+  "source_freshness": "2026-11-23T01:38:32.081921+00:00",
+  "source_stale": false,
+  "prediction_status": "recorded",
+  "kind": "live",
+  "revision": 1
+}

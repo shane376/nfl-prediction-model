@@ -1,0 +1,20 @@
+{
+  "season": 2026,
+  "week": 12,
+  "game_id": "2026_12_CHI_DET",
+  "home_team": "DET",
+  "away_team": "CHI",
+  "kickoff": "2026-11-26T18:00:00+00:00",
+  "predicted_winner": "DET",
+  "home_probability": 0.5434862064369974,
+  "away_probability": 0.4565137935630026,
+  "model_version": "v1A-1aa64cb4b1",
+  "generated_at": "2026-11-19T23:55:53.251566+00:00",
+  "data_cutoff": "2026-11-19T23:55:53.224769+00:00",
+  "training_cutoff": "2026-11-05T21:57:09.561472+00:00",
+  "source_freshness": "2026-11-19T23:55:51.785119+00:00",
+  "source_stale": false,
+  "prediction_status": "recorded",
+  "kind": "live",
+  "revision": 1
+}

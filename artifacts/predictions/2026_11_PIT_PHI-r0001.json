@@ -1,0 +1,20 @@
+{
+  "season": 2026,
+  "week": 11,
+  "game_id": "2026_11_PIT_PHI",
+  "home_team": "PHI",
+  "away_team": "PIT",
+  "kickoff": "2026-11-22T21:25:00+00:00",
+  "predicted_winner": "PIT",
+  "home_probability": 0.3688914951552586,
+  "away_probability": 0.6311085048447413,
+  "model_version": "v1A-1aa64cb4b1",
+  "generated_at": "2026-11-16T00:29:32.053012+00:00",
+  "data_cutoff": "2026-11-16T00:29:32.038729+00:00",
+  "training_cutoff": "2026-11-05T21:57:09.561472+00:00",
+  "source_freshness": "2026-11-16T00:29:30.491170+00:00",
+  "source_stale": false,
+  "prediction_status": "recorded",
+  "kind": "live",
+  "revision": 1
+}
