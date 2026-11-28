@@ -1,9 +1,9 @@
 {
   "season": 2026,
-  "generated_at": "2026-11-27T22:42:25.160352+00:00",
+  "generated_at": "2026-11-28T04:49:12.660666+00:00",
   "source": {
     "source": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv",
-    "fetched_at": "2026-11-27T22:42:21.926270+00:00",
+    "fetched_at": "2026-11-28T04:49:07.527520+00:00",
     "error": null,
     "stale": false,
     "offline": false
@@ -283,7 +283,7 @@
     {
       "week": 12,
       "scheduled_games": 16,
-      "completed_games": 4,
+      "completed_games": 5,
       "scheduled_unplayed": 11,
       "ties": 0,
       "postponed": 0,
@@ -296,10 +296,10 @@
       "missing_past_authentic": 0,
       "missing_future_authentic": 0,
       "missing_retrospective_backtests": 0,
-      "awaiting_result_embargo": 0,
-      "missing_results_after_kickoff": 1,
+      "awaiting_result_embargo": 1,
+      "missing_results_after_kickoff": 0,
       "missing_kickoff": 0,
-      "games_missing_required_data": 1
+      "games_missing_required_data": 0
     },
     {
       "week": 13,
@@ -430,7 +430,7 @@
   ],
   "coverage_totals": {
     "scheduled_games": 272,
-    "completed_games": 167,
+    "completed_games": 168,
     "scheduled_unplayed": 104,
     "ties": 1,
     "postponed": 0,
@@ -443,10 +443,10 @@
     "missing_past_authentic": 121,
     "missing_future_authentic": 92,
     "missing_retrospective_backtests": 0,
-    "awaiting_result_embargo": 0,
-    "missing_results_after_kickoff": 1,
+    "awaiting_result_embargo": 1,
+    "missing_results_after_kickoff": 0,
     "missing_kickoff": 0,
-    "games_missing_required_data": 1
+    "games_missing_required_data": 0
   },
   "recorded": {
     "summary": {
